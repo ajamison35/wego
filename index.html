@@ -439,6 +439,121 @@
             }
         };
 
+        // Tab switching function
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content and activate tab
+            if (tabName === 'submit') {
+                document.getElementById('submitTab').classList.add('active');
+                document.querySelector('.tab[onclick="switchTab(\'submit\')"]').classList.add('active');
+            } else if (tabName === 'leaderboard') {
+                document.getElementById('leaderboardTab').classList.add('active');
+                document.querySelector('.tab[onclick="switchTab(\'leaderboard\')"]').classList.add('active');
+                updateLeaderboard(); // Update leaderboard when switching to it
+            }
+        }
+
+        // Update leaderboard function
+        function updateLeaderboard() {
+            const weekFilter = document.getElementById('weekFilter').value;
+            const leaderboardContent = document.getElementById('leaderboardContent');
+            
+            if (submissions.length === 0) {
+                leaderboardContent.innerHTML = '<div class="no-data">No scores submitted yet. Be the first to submit your scores!</div>';
+                return;
+            }
+            
+            let filteredSubmissions = submissions;
+            
+            if (weekFilter !== 'all') {
+                filteredSubmissions = submissions.filter(sub => sub.week === weekFilter);
+            }
+            
+            if (filteredSubmissions.length === 0) {
+                leaderboardContent.innerHTML = '<div class="no-data">No scores found for the selected week.</div>';
+                return;
+            }
+            
+            // Calculate leaderboard data
+            let leaderboardData = [];
+            
+            if (weekFilter === 'all') {
+                // Overall leaderboard - sum all scores for each player
+                const playerTotals = {};
+                filteredSubmissions.forEach(sub => {
+                    if (playerTotals[sub.name]) {
+                        playerTotals[sub.name].total += sub.total;
+                        playerTotals[sub.name].weeks++;
+                    } else {
+                        playerTotals[sub.name] = {
+                            name: sub.name,
+                            total: sub.total,
+                            weeks: 1,
+                            phone: sub.phone
+                        };
+                    }
+                });
+                
+                leaderboardData = Object.values(playerTotals);
+            } else {
+                // Weekly leaderboard
+                leaderboardData = filteredSubmissions.map(sub => ({
+                    name: sub.name,
+                    total: sub.total,
+                    phone: sub.phone,
+                    scores: sub.scores
+                }));
+            }
+            
+            // Sort by lowest score (best score in golf)
+            leaderboardData.sort((a, b) => a.total - b.total);
+            
+            // Create leaderboard table
+            let tableHTML = `
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Total Score</th>
+                            ${weekFilter === 'all' ? '<th>Weeks Played</th>' : '<th>Individual Hole Scores</th>'}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            leaderboardData.forEach((player, index) => {
+                const rank = index + 1;
+                let rowClass = '';
+                if (rank === 1) rowClass = 'rank-1';
+                else if (rank === 2) rowClass = 'rank-2';
+                else if (rank === 3) rowClass = 'rank-3';
+                
+                const extraColumn = weekFilter === 'all' 
+                    ? `<td>${player.weeks || 1}</td>`
+                    : `<td>${player.scores ? player.scores.join(', ') : 'N/A'}</td>`;
+                
+                tableHTML += `
+                    <tr class="${rowClass}">
+                        <td class="rank-cell">${rank}</td>
+                        <td>${player.name}</td>
+                        <td class="total-score">${player.total}</td>
+                        ${extraColumn}
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            leaderboardContent.innerHTML = tableHTML;
+        }
+
         // Handle week selection
         document.getElementById('weekSelect').addEventListener('change', function() {
             const selectedWeek = this.value;
@@ -518,38 +633,6 @@
                 document.getElementById('successMessage').style.display = 'none';
             }, 5000);
         });
-
-        // Toggle admin view
-        function toggleAdmin() {
-            const adminContent = document.getElementById('adminContent');
-            if (adminContent.style.display === 'none' || adminContent.style.display === '') {
-                adminContent.style.display = 'block';
-                updateSubmissionsTable();
-            } else {
-                adminContent.style.display = 'none';
-            }
-        }
-
-        // Update submissions table
-        function updateSubmissionsTable() {
-            const tbody = document.getElementById('submissionsBody');
-            tbody.innerHTML = '';
-            
-            submissions.forEach(submission => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${submission.timestamp}</td>
-                    <td>${submission.name}</td>
-                    <td>${submission.phone}</td>
-                    <td>${submission.weekTitle}</td>
-                    <td>${submission.scores[0]}</td>
-                    <td>${submission.scores[1]}</td>
-                    <td>${submission.scores[2]}</td>
-                    <td><strong>${submission.total}</strong></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
     </script>
 </body>
 </html>
