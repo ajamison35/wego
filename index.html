@@ -306,7 +306,7 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('submit')">Submit Scores</button>
-            <button class="tab active" onclick="switchTab('leaderboard')">Leaderboard</button>
+            <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
         </div>
 
         <!-- Submit Scores Tab -->
@@ -472,17 +472,9 @@
             }
         });
 
-        // *** REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL ***
-        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
-
         // Handle form submission
-        document.getElementById('scoreForm').addEventListener('submit', async function(e) {
+        document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const submitBtn = document.querySelector('.submit-btn');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Submitting...';
-            submitBtn.disabled = true;
             
             const formData = new FormData(this);
             const selectedWeek = formData.get('weekSelect');
@@ -508,65 +500,22 @@
                 total: total
             };
             
-            try {
-                // Send to Google Sheets
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(submission)
-                });
-                
-                if (response.ok) {
-                    // Add to local submissions array for admin view
-                    submissions.push(submission);
-                    
-                    // Show success message
-                    const successMsg = document.getElementById('successMessage');
-                    successMsg.textContent = 'Score submitted successfully to Google Sheets! Thank you for participating.';
-                    successMsg.style.display = 'block';
-                    
-                    // Reset form
-                    this.reset();
-                    document.getElementById('courseInfo').style.display = 'none';
-                    
-                    // Update admin table if visible
-                    updateSubmissionsTable();
-                } else {
-                    throw new Error('Failed to submit to Google Sheets');
-                }
-                
-            } catch (error) {
-                console.error('Error:', error);
-                // Fallback: still add to local storage
-                submissions.push(submission);
-                
-                const successMsg = document.getElementById('successMessage');
-                successMsg.textContent = 'Score saved locally! (Note: Google Sheets sync may have failed)';
-                successMsg.style.backgroundColor = '#fff3cd';
-                successMsg.style.color = '#856404';
-                successMsg.style.borderColor = '#ffeaa7';
-                successMsg.style.display = 'block';
-                
-                // Reset form
-                this.reset();
-                document.getElementById('courseInfo').style.display = 'none';
-                updateSubmissionsTable();
-            }
+            // Add to submissions array
+            submissions.push(submission);
             
-            // Reset button
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Reset form
+            this.reset();
+            document.getElementById('courseInfo').style.display = 'none';
+            
+            // Update leaderboard
+            updateLeaderboard();
             
             // Hide success message after 5 seconds
             setTimeout(() => {
                 document.getElementById('successMessage').style.display = 'none';
-                // Reset message styling
-                const successMsg = document.getElementById('successMessage');
-                successMsg.style.backgroundColor = '#d4edda';
-                successMsg.style.color = '#155724';
-                successMsg.style.borderColor = '#c3e6cb';
             }, 5000);
         });
 
