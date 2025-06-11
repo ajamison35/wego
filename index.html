@@ -33,6 +33,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -44,6 +45,24 @@
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
+        }
+
+        .admin-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         .form-container {
@@ -75,7 +94,7 @@
             color: #333;
         }
 
-        input[type="text"], input[type="tel"], select {
+        input[type="text"], input[type="tel"], input[type="password"], select {
             width: 100%;
             padding: 12px;
             border: 2px solid #ddd;
@@ -84,7 +103,7 @@
             transition: border-color 0.3s ease;
         }
 
-        input[type="text"]:focus, input[type="tel"]:focus, select:focus {
+        input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, select:focus {
             outline: none;
             border-color: #2d5016;
             box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
@@ -282,6 +301,156 @@
             display: none;
         }
 
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        /* Admin Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #1a472a, #2d5016);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .admin-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .admin-table th {
+            background: #6c757d;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .admin-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .admin-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .admin-btn-small {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .save-btn {
+            background: #28a745;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .admin-btn-small:hover {
+            opacity: 0.8;
+        }
+
+        .edit-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .login-form {
+            max-width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .login-form input {
+            margin-bottom: 15px;
+        }
+
         @media (max-width: 600px) {
             .container {
                 margin: 10px;
@@ -294,12 +463,27 @@
             .holes-container {
                 grid-template-columns: 1fr;
             }
+
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+            }
+
+            .admin-table {
+                font-size: 12px;
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: 6px 4px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <button class="admin-btn" onclick="openAdminModal()">Admin</button>
             <h1>🏌️ Golf Simulator Tournament</h1>
             <p>Submit Your Weekly Scores & View Leaderboard</p>
         </div>
@@ -383,9 +567,55 @@
         </div>
     </div>
 
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔧 Admin Panel</h2>
+                <span class="close" onclick="closeAdminModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="adminLogin" class="login-form">
+                    <h3>Admin Login</h3>
+                    <div class="error-message" id="loginError">
+                        Incorrect password. Please try again.
+                    </div>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                    <button class="submit-btn" onclick="adminLogin()">Login</button>
+                </div>
+
+                <div id="adminPanel" style="display: none;">
+                    <div class="admin-controls">
+                        <h3>⚠️ Score Management</h3>
+                        <p>Use the buttons below to edit or delete individual scores. Changes are immediate and cannot be undone.</p>
+                    </div>
+
+                    <div class="week-filter" style="margin-bottom: 20px;">
+                        <label for="adminWeekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
+                        <select id="adminWeekFilter" onchange="updateAdminTable()">
+                            <option value="all">All Weeks</option>
+                            <option value="week1">Week 1 - Quail Hollow Club</option>
+                            <option value="week2">Week 2 - Torrey Pines</option>
+                            <option value="week3">Week 3 - Royal St. George's</option>
+                            <option value="week4">Week 4 - Valhalla Golf Club</option>
+                            <option value="week5">Week 5 - Augusta National</option>
+                            <option value="week6">Week 6 - St. Andrews Old Course</option>
+                        </select>
+                    </div>
+
+                    <div id="adminTableContainer">
+                        <!-- Admin table will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Store all submissions in memory
         let submissions = [];
+        let isAdminLoggedIn = false;
+        const adminPassword = "golf2024"; // Change this to your desired password
 
         // Course data
         const courseData = {
@@ -439,6 +669,164 @@
             }
         };
 
+        // Admin functions
+        function openAdminModal() {
+            document.getElementById('adminModal').style.display = 'block';
+            if (isAdminLoggedIn) {
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                updateAdminTable();
+            } else {
+                document.getElementById('adminLogin').style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'none';
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === adminPassword) {
+                isAdminLoggedIn = true;
+                document.getElementById('adminLogin').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('loginError').style.display = 'none';
+                updateAdminTable();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function updateAdminTable() {
+            const weekFilter = document.getElementById('adminWeekFilter').value;
+            const container = document.getElementById('adminTableContainer');
+            
+            if (submissions.length === 0) {
+                container.innerHTML = '<div class="no-data">No submissions to manage.</div>';
+                return;
+            }
+            
+            let filteredSubmissions = submissions;
+            if (weekFilter !== 'all') {
+                filteredSubmissions = submissions.filter(sub => sub.week === weekFilter);
+            }
+            
+            if (filteredSubmissions.length === 0) {
+                container.innerHTML = '<div class="no-data">No submissions found for the selected week.</div>';
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Player</th>
+                            <th>Week</th>
+                            <th>Hole 1</th>
+                            <th>Hole 2</th>
+                            <th>Hole 3</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            filteredSubmissions.forEach((submission, index) => {
+                const originalIndex = submissions.indexOf(submission);
+                tableHTML += `
+                    <tr id="row-${originalIndex}">
+                        <td>${submission.timestamp}</td>
+                        <td>${submission.name}</td>
+                        <td>${submission.weekTitle}</td>
+                        <td><span class="score-display" id="score-${originalIndex}-0">${submission.scores[0]}</span></td>
+                        <td><span class="score-display" id="score-${originalIndex}-1">${submission.scores[1]}</span></td>
+                        <td><span class="score-display" id="score-${originalIndex}-2">${submission.scores[2]}</span></td>
+                        <td><span class="total-display" id="total-${originalIndex}">${submission.total}</span></td>
+                        <td>
+                            <button class="admin-btn-small edit-btn" onclick="editScore(${originalIndex})">Edit</button>
+                            <button class="admin-btn-small delete-btn" onclick="deleteScore(${originalIndex})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+
+        function editScore(index) {
+            const submission = submissions[index];
+            const row = document.getElementById(`row-${index}`);
+            
+            // Replace score displays with inputs
+            for (let i = 0; i < 3; i++) {
+                const scoreCell = document.getElementById(`score-${index}-${i}`);
+                scoreCell.innerHTML = `<input type="number" class="edit-input" id="edit-${index}-${i}" value="${submission.scores[i]}" min="1" max="15">`;
+            }
+            
+            // Replace action buttons
+            const actionCell = row.querySelector('td:last-child');
+            actionCell.innerHTML = `
+                <button class="admin-btn-small save-btn" onclick="saveScore(${index})">Save</button>
+                <button class="admin-btn-small cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
+            `;
+        }
+
+        function saveScore(index) {
+            const newScores = [];
+            let newTotal = 0;
+            
+            // Get new scores from inputs
+            for (let i = 0; i < 3; i++) {
+                const input = document.getElementById(`edit-${index}-${i}`);
+                const score = parseInt(input.value);
+                if (isNaN(score) || score < 1 || score > 15) {
+                    alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
+                    return;
+                }
+                newScores.push(score);
+                newTotal += score;
+            }
+            
+            // Update submission
+            submissions[index].scores = newScores;
+            submissions[index].total = newTotal;
+            
+            // Refresh admin table and leaderboard
+            updateAdminTable();
+            updateLeaderboard();
+            
+            alert('Score updated successfully!');
+        }
+
+        function cancelEdit(index) {
+            updateAdminTable();
+        }
+
+        function deleteScore(index) {
+            const submission = submissions[index];
+            if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
+                submissions.splice(index, 1);
+                updateAdminTable();
+                updateLeaderboard();
+                alert('Score deleted successfully!');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('adminModal');
+            if (event.target == modal) {
+                closeAdminModal();
+            }
+        }
+
         // Tab switching function
         function switchTab(tabName) {
             // Hide all tab contents
@@ -491,13 +879,6 @@
                     if (playerTotals[sub.name]) {
                         playerTotals[sub.name].total += sub.total;
                         playerTotals[sub.name].weeks++;
-                    } else {
-                        playerTotals[sub.name] = {
-                            name: sub.name,
-                            total: sub.total,
-                            weeks: 1,
-                            phone: sub.phone
-                        };
                     }
                 });
                 
@@ -633,6 +1014,19 @@
                 document.getElementById('successMessage').style.display = 'none';
             }, 5000);
         });
+
+        // Handle Enter key in admin password field
+        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                adminLogin();
+            }
+        });
     </script>
 </body>
-</html>
+</html> else {
+                        playerTotals[sub.name] = {
+                            name: sub.name,
+                            total: sub.total,
+                            weeks: 1,
+                            phone: sub.phone
+                        };
