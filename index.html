@@ -153,45 +153,123 @@
             transform: translateY(0);
         }
 
-        .admin-section {
-            margin-top: 40px;
-            padding-top: 40px;
-            border-top: 2px solid #eee;
-        }
-
-        .admin-toggle {
-            background: #6c757d;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        .admin-content {
-            display: none;
+        .tabs {
+            display: flex;
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
         }
 
-        .submissions-table {
+        .tab {
+            flex: 1;
+            padding: 20px;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            color: #495057;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2d5016;
+        }
+
+        .tab:hover:not(.active) {
+            background: #dee2e6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .leaderboard-section {
+            padding: 40px;
+            background: white;
+        }
+
+        .week-filter {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .week-filter select {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #2d5016;
+            border-radius: 8px;
+            background: white;
+            color: #2d5016;
+            font-weight: bold;
+        }
+
+        .leaderboard-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        .submissions-table th,
-        .submissions-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .submissions-table th {
-            background: #2d5016;
+        .leaderboard-table th {
+            background: linear-gradient(135deg, #2d5016, #4a7c59);
             color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .leaderboard-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-table tr:hover {
+            background: #e8f5e8;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #ffd700, #ffed4e) !important;
+            font-weight: bold;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #c0c0c0, #e2e2e2) !important;
+            font-weight: bold;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #cd7f32, #daa520) !important;
+            font-weight: bold;
+        }
+
+        .rank-cell {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .total-score {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2d5016;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
         }
 
         .success-message {
@@ -223,73 +301,83 @@
     <div class="container">
         <div class="header">
             <h1>🏌️ Golf Simulator Tournament</h1>
-            <p>Submit Your Weekly Scores</p>
+            <p>Submit Your Weekly Scores & View Leaderboard</p>
         </div>
 
-        <div class="form-container">
-            <div class="success-message" id="successMessage">
-                Score submitted successfully! Thank you for participating.
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('submit')">Submit Scores</button>
+            <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+        </div>
+
+        <!-- Submit Scores Tab -->
+        <div id="submitTab" class="tab-content active">
+            <div class="form-container">
+                <div class="success-message" id="successMessage">
+                    Score submitted successfully! Thank you for participating.
+                </div>
+
+                <form id="scoreForm">
+                    <div class="participant-info">
+                        <h3>Participant Information</h3>
+                        <div class="form-group">
+                            <label for="playerName">Player Name:</label>
+                            <input type="text" id="playerName" name="playerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Phone Number:</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                        </div>
+                    </div>
+
+                    <div class="week-selector">
+                        <div class="form-group">
+                            <label for="weekSelect">Select Tournament Week:</label>
+                            <select id="weekSelect" name="weekSelect" required>
+                                <option value="">Choose a week...</option>
+                                <option value="week1">Week 1 - Quail Hollow Club (Championship Vibes)</option>
+                                <option value="week2">Week 2 - Torrey Pines (California Dreaming)</option>
+                                <option value="week3">Week 3 - Royal St. George's (British Open Week)</option>
+                                <option value="week4">Week 4 - Valhalla Golf Club (Major Season)</option>
+                                <option value="week5">Week 5 - Augusta National</option>
+                                <option value="week6">Week 6 - St. Andrews Old Course (Finale & Trophy Night)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="courseInfo" class="course-info" style="display: none;">
+                        <h4 id="courseTitle"></h4>
+                        <div class="holes-container" id="holesContainer">
+                            <!-- Holes will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Scores</button>
+                </form>
             </div>
+        </div>
 
-            <form id="scoreForm">
-                <div class="participant-info">
-                    <h3>Participant Information</h3>
-                    <div class="form-group">
-                        <label for="playerName">Player Name:</label>
-                        <input type="text" id="playerName" name="playerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phoneNumber">Phone Number:</label>
-                        <input type="tel" id="phoneNumber" name="phoneNumber" required>
-                    </div>
+        <!-- Leaderboard Tab -->
+        <div id="leaderboardTab" class="tab-content">
+            <div class="leaderboard-section">
+                <h2 style="text-align: center; color: #2d5016; margin-bottom: 30px;">🏆 Tournament Leaderboard</h2>
+                
+                <div class="week-filter">
+                    <label for="weekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
+                    <select id="weekFilter" onchange="updateLeaderboard()">
+                        <option value="all">All Weeks (Overall)</option>
+                        <option value="week1">Week 1 - Quail Hollow Club</option>
+                        <option value="week2">Week 2 - Torrey Pines</option>
+                        <option value="week3">Week 3 - Royal St. George's</option>
+                        <option value="week4">Week 4 - Valhalla Golf Club</option>
+                        <option value="week5">Week 5 - Augusta National</option>
+                        <option value="week6">Week 6 - St. Andrews Old Course</option>
+                    </select>
                 </div>
 
-                <div class="week-selector">
-                    <div class="form-group">
-                        <label for="weekSelect">Select Tournament Week:</label>
-                        <select id="weekSelect" name="weekSelect" required>
-                            <option value="">Choose a week...</option>
-                            <option value="week1">Week 1 - Quail Hollow Club (Championship Vibes)</option>
-                            <option value="week2">Week 2 - Torrey Pines (California Dreaming)</option>
-                            <option value="week3">Week 3 - Royal St. George's (British Open Week)</option>
-                            <option value="week4">Week 4 - Valhalla Golf Club (Major Season)</option>
-                            <option value="week5">Week 5 - Augusta National</option>
-                            <option value="week6">Week 6 - St. Andrews Old Course (Finale & Trophy Night)</option>
-                        </select>
+                <div id="leaderboardContent">
+                    <div class="no-data">
+                        No scores submitted yet. Be the first to submit your scores!
                     </div>
-                </div>
-
-                <div id="courseInfo" class="course-info" style="display: none;">
-                    <h4 id="courseTitle"></h4>
-                    <div class="holes-container" id="holesContainer">
-                        <!-- Holes will be populated by JavaScript -->
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-btn">Submit Scores</button>
-            </form>
-
-            <div class="admin-section">
-                <button class="admin-toggle" onclick="toggleAdmin()">Admin View</button>
-                <div class="admin-content" id="adminContent">
-                    <h3>All Submissions</h3>
-                    <table class="submissions-table" id="submissionsTable">
-                        <thead>
-                            <tr>
-                                <th>Date/Time</th>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Week</th>
-                                <th>Par 3</th>
-                                <th>Par 4</th>
-                                <th>Par 5</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="submissionsBody">
-                            <!-- Submissions will be populated here -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
@@ -384,9 +472,17 @@
             }
         });
 
+        // *** REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL ***
+        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
         // Handle form submission
-        document.getElementById('scoreForm').addEventListener('submit', function(e) {
+        document.getElementById('scoreForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const submitBtn = document.querySelector('.submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
             
             const formData = new FormData(this);
             const selectedWeek = formData.get('weekSelect');
@@ -412,22 +508,65 @@
                 total: total
             };
             
-            // Add to submissions array
-            submissions.push(submission);
+            try {
+                // Send to Google Sheets
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(submission)
+                });
+                
+                if (response.ok) {
+                    // Add to local submissions array for admin view
+                    submissions.push(submission);
+                    
+                    // Show success message
+                    const successMsg = document.getElementById('successMessage');
+                    successMsg.textContent = 'Score submitted successfully to Google Sheets! Thank you for participating.';
+                    successMsg.style.display = 'block';
+                    
+                    // Reset form
+                    this.reset();
+                    document.getElementById('courseInfo').style.display = 'none';
+                    
+                    // Update admin table if visible
+                    updateSubmissionsTable();
+                } else {
+                    throw new Error('Failed to submit to Google Sheets');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Fallback: still add to local storage
+                submissions.push(submission);
+                
+                const successMsg = document.getElementById('successMessage');
+                successMsg.textContent = 'Score saved locally! (Note: Google Sheets sync may have failed)';
+                successMsg.style.backgroundColor = '#fff3cd';
+                successMsg.style.color = '#856404';
+                successMsg.style.borderColor = '#ffeaa7';
+                successMsg.style.display = 'block';
+                
+                // Reset form
+                this.reset();
+                document.getElementById('courseInfo').style.display = 'none';
+                updateSubmissionsTable();
+            }
             
-            // Show success message
-            document.getElementById('successMessage').style.display = 'block';
-            
-            // Reset form
-            this.reset();
-            document.getElementById('courseInfo').style.display = 'none';
-            
-            // Update admin table if visible
-            updateSubmissionsTable();
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
             
             // Hide success message after 5 seconds
             setTimeout(() => {
                 document.getElementById('successMessage').style.display = 'none';
+                // Reset message styling
+                const successMsg = document.getElementById('successMessage');
+                successMsg.style.backgroundColor = '#d4edda';
+                successMsg.style.color = '#155724';
+                successMsg.style.borderColor = '#c3e6cb';
             }, 5000);
         });
 
