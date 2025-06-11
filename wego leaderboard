@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Simulator Tournament - Score Submission</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2d5016, #4a7c59);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a472a, #2d5016);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .participant-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2d5016;
+        }
+
+        .participant-info h3 {
+            color: #2d5016;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="text"], input[type="tel"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="tel"]:focus, select:focus {
+            outline: none;
+            border-color: #2d5016;
+            box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+        }
+
+        .week-selector {
+            margin-bottom: 30px;
+        }
+
+        .course-info {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #c3e6c3;
+        }
+
+        .course-info h4 {
+            color: #1a472a;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .holes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .hole-input {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .hole-input label {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .hole-input input {
+            margin-bottom: 0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #2d5016, #4a7c59);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(45, 80, 22, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .admin-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #eee;
+        }
+
+        .admin-toggle {
+            background: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .admin-content {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .submissions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .submissions-table th,
+        .submissions-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .submissions-table th {
+            background: #2d5016;
+            color: white;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .holes-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏌️ Golf Simulator Tournament</h1>
+            <p>Submit Your Weekly Scores</p>
+        </div>
+
+        <div class="form-container">
+            <div class="success-message" id="successMessage">
+                Score submitted successfully! Thank you for participating.
+            </div>
+
+            <form id="scoreForm">
+                <div class="participant-info">
+                    <h3>Participant Information</h3>
+                    <div class="form-group">
+                        <label for="playerName">Player Name:</label>
+                        <input type="text" id="playerName" name="playerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number:</label>
+                        <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                    </div>
+                </div>
+
+                <div class="week-selector">
+                    <div class="form-group">
+                        <label for="weekSelect">Select Tournament Week:</label>
+                        <select id="weekSelect" name="weekSelect" required>
+                            <option value="">Choose a week...</option>
+                            <option value="week1">Week 1 - Quail Hollow Club (Championship Vibes)</option>
+                            <option value="week2">Week 2 - Torrey Pines (California Dreaming)</option>
+                            <option value="week3">Week 3 - Royal St. George's (British Open Week)</option>
+                            <option value="week4">Week 4 - Valhalla Golf Club (Major Season)</option>
+                            <option value="week5">Week 5 - Augusta National</option>
+                            <option value="week6">Week 6 - St. Andrews Old Course (Finale & Trophy Night)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="courseInfo" class="course-info" style="display: none;">
+                    <h4 id="courseTitle"></h4>
+                    <div class="holes-container" id="holesContainer">
+                        <!-- Holes will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Scores</button>
+            </form>
+
+            <div class="admin-section">
+                <button class="admin-toggle" onclick="toggleAdmin()">Admin View</button>
+                <div class="admin-content" id="adminContent">
+                    <h3>All Submissions</h3>
+                    <table class="submissions-table" id="submissionsTable">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Week</th>
+                                <th>Par 3</th>
+                                <th>Par 4</th>
+                                <th>Par 5</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="submissionsBody">
+                            <!-- Submissions will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store all submissions in memory
+        let submissions = [];
+
+        // Course data
+        const courseData = {
+            week1: {
+                title: "Week 1 – Quail Hollow Club (Championship Vibes)",
+                holes: [
+                    { type: "Par 3", hole: "Hole 17", par: 3 },
+                    { type: "Par 4", hole: "Hole 2", par: 4 },
+                    { type: "Par 5", hole: "Hole 7", par: 5 }
+                ]
+            },
+            week2: {
+                title: "Week 2 – Torrey Pines (California Dreaming)",
+                holes: [
+                    { type: "Par 3", hole: "Hole 3", par: 3 },
+                    { type: "Par 4", hole: "Hole 4", par: 4 },
+                    { type: "Par 5", hole: "Hole 18", par: 5 }
+                ]
+            },
+            week3: {
+                title: "Week 3 – Royal St. George's (British Open Week)",
+                holes: [
+                    { type: "Par 3", hole: "Hole 6", par: 3 },
+                    { type: "Par 4", hole: "Hole 1", par: 4 },
+                    { type: "Par 5", hole: "Hole 7", par: 5 }
+                ]
+            },
+            week4: {
+                title: "Week 4 – Valhalla Golf Club (Major Season)",
+                holes: [
+                    { type: "Par 3", hole: "Hole 8", par: 3 },
+                    { type: "Par 4", hole: "Hole 13", par: 4 },
+                    { type: "Par 5", hole: "Hole 7", par: 5 }
+                ]
+            },
+            week5: {
+                title: "Week 5 – Augusta National",
+                holes: [
+                    { type: "Par 3", hole: "Hole 12", par: 3 },
+                    { type: "Par 4", hole: "Hole 11", par: 4 },
+                    { type: "Par 5", hole: "Hole 13", par: 5 }
+                ]
+            },
+            week6: {
+                title: "Week 6 – St. Andrews Old Course (Finale & Trophy Night)",
+                holes: [
+                    { type: "Par 3", hole: "Hole 8", par: 3 },
+                    { type: "Par 4", hole: "Hole 17", par: 4 },
+                    { type: "Par 5", hole: "Hole 15", par: 5 }
+                ]
+            }
+        };
+
+        // Handle week selection
+        document.getElementById('weekSelect').addEventListener('change', function() {
+            const selectedWeek = this.value;
+            const courseInfo = document.getElementById('courseInfo');
+            const courseTitle = document.getElementById('courseTitle');
+            const holesContainer = document.getElementById('holesContainer');
+
+            if (selectedWeek && courseData[selectedWeek]) {
+                const course = courseData[selectedWeek];
+                courseTitle.textContent = course.title;
+                
+                // Clear previous holes
+                holesContainer.innerHTML = '';
+                
+                // Add holes
+                course.holes.forEach((hole, index) => {
+                    const holeDiv = document.createElement('div');
+                    holeDiv.className = 'hole-input';
+                    holeDiv.innerHTML = `
+                        <label for="hole${index}">${hole.type} - ${hole.hole} (Par ${hole.par}):</label>
+                        <input type="text" id="hole${index}" name="hole${index}" 
+                               placeholder="Enter score" required pattern="[0-9]+" 
+                               title="Please enter a valid score (numbers only)">
+                    `;
+                    holesContainer.appendChild(holeDiv);
+                });
+                
+                courseInfo.style.display = 'block';
+            } else {
+                courseInfo.style.display = 'none';
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('scoreForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const selectedWeek = formData.get('weekSelect');
+            const course = courseData[selectedWeek];
+            
+            // Collect scores
+            const scores = [];
+            let total = 0;
+            for (let i = 0; i < course.holes.length; i++) {
+                const score = parseInt(formData.get(`hole${i}`));
+                scores.push(score);
+                total += score;
+            }
+            
+            // Create submission object
+            const submission = {
+                timestamp: new Date().toLocaleString(),
+                name: formData.get('playerName'),
+                phone: formData.get('phoneNumber'),
+                week: selectedWeek,
+                weekTitle: course.title,
+                scores: scores,
+                total: total
+            };
+            
+            // Add to submissions array
+            submissions.push(submission);
+            
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            
+            // Reset form
+            this.reset();
+            document.getElementById('courseInfo').style.display = 'none';
+            
+            // Update admin table if visible
+            updateSubmissionsTable();
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 5000);
+        });
+
+        // Toggle admin view
+        function toggleAdmin() {
+            const adminContent = document.getElementById('adminContent');
+            if (adminContent.style.display === 'none' || adminContent.style.display === '') {
+                adminContent.style.display = 'block';
+                updateSubmissionsTable();
+            } else {
+                adminContent.style.display = 'none';
+            }
+        }
+
+        // Update submissions table
+        function updateSubmissionsTable() {
+            const tbody = document.getElementById('submissionsBody');
+            tbody.innerHTML = '';
+            
+            submissions.forEach(submission => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${submission.timestamp}</td>
+                    <td>${submission.name}</td>
+                    <td>${submission.phone}</td>
+                    <td>${submission.weekTitle}</td>
+                    <td>${submission.scores[0]}</td>
+                    <td>${submission.scores[1]}</td>
+                    <td>${submission.scores[2]}</td>
+                    <td><strong>${submission.total}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
