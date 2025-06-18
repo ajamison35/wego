@@ -621,454 +621,223 @@
 
     <script>
         // Store all submissions in memory
-        let submissions = [];
-        let isAdminLoggedIn = false;
-        const adminPassword = "golf2024"; // Change this to your desired password
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyTyYrRwRgqDscnbOG3vcF4eU1syQ1OdGaZLAX7beoGtPmp9chz_MD_3gmRtqn4RSr9FA/exec'
+let submissions = [];
+let isAdminLoggedIn = false;
+const adminPassword = "golf2024"; // Change this to your desired password
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyTyYrRwRgqDscnbOG3vcF4eU1syQ1OdGaZLAX7beoGtPmp9chz_MD_3gmRtqn4RSr9FA/exec';
 
-        // Course data
-        const courseData = {
-            week1: {
-                title: "Week 1 – Quail Hollow Club (Championship Vibes)",
-                holes: [
-                    { type: "Par 3", hole: "Hole 17", par: 3 },
-                    { type: "Par 4", hole: "Hole 2", par: 4 },
-                    { type: "Par 5", hole: "Hole 7", par: 5 }
-                ]
-            },
-            week2: {
-                title: "Week 2 – Torrey Pines (California Dreaming)",
-                holes: [
-                    { type: "Par 3", hole: "Hole 3", par: 3 },
-                    { type: "Par 4", hole: "Hole 4", par: 4 },
-                    { type: "Par 5", hole: "Hole 18", par: 5 }
-                ]
-            },
-            week3: {
-                title: "Week 3 – Royal St. George's (British Open Week)",
-                holes: [
-                    { type: "Par 3", hole: "Hole 6", par: 3 },
-                    { type: "Par 4", hole: "Hole 1", par: 4 },
-                    { type: "Par 5", hole: "Hole 7", par: 5 }
-                ]
-            },
-            week4: {
-                title: "Week 4 – Valhalla Golf Club (Major Season)",
-                holes: [
-                    { type: "Par 3", hole: "Hole 8", par: 3 },
-                    { type: "Par 4", hole: "Hole 13", par: 4 },
-                    { type: "Par 5", hole: "Hole 7", par: 5 }
-                ]
-            },
-            week5: {
-                title: "Week 5 – Augusta National",
-                holes: [
-                    { type: "Par 3", hole: "Hole 12", par: 3 },
-                    { type: "Par 4", hole: "Hole 11", par: 4 },
-                    { type: "Par 5", hole: "Hole 13", par: 5 }
-                ]
-            },
-            week6: {
-                title: "Week 6 – St. Andrews Old Course (Finale & Trophy Night)",
-                holes: [
-                    { type: "Par 3", hole: "Hole 8", par: 3 },
-                    { type: "Par 4", hole: "Hole 17", par: 4 },
-                    { type: "Par 5", hole: "Hole 15", par: 5 }
-                ]
-            }
-        };
-
-        // Admin functions
-        function openAdminModal() {
-            document.getElementById('adminModal').style.display = 'block';
-            if (isAdminLoggedIn) {
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                updateAdminTable();
-            } else {
-                document.getElementById('adminLogin').style.display = 'block';
-                document.getElementById('adminPanel').style.display = 'none';
-            }
-        }
-
-        function closeAdminModal() {
-            document.getElementById('adminModal').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
-            document.getElementById('loginError').style.display = 'none';
-        }
-
-        function adminLogin() {
-            const password = document.getElementById('adminPassword').value;
-            if (password === adminPassword) {
-                isAdminLoggedIn = true;
-                document.getElementById('adminLogin').style.display = 'none';
-                document.getElementById('adminPanel').style.display = 'block';
-                document.getElementById('loginError').style.display = 'none';
-                updateAdminTable();
-            } else {
-                document.getElementById('loginError').style.display = 'block';
-            }
-        }
-
-        function updateAdminTable() {
-            const weekFilter = document.getElementById('adminWeekFilter').value;
-            const container = document.getElementById('adminTableContainer');
-            
-            if (submissions.length === 0) {
-                container.innerHTML = '<div class="no-data">No submissions to manage.</div>';
-                return;
-            }
-            
-            let filteredSubmissions = submissions;
-            if (weekFilter !== 'all') {
-                filteredSubmissions = submissions.filter(sub => sub.week === weekFilter);
-            }
-            
-            if (filteredSubmissions.length === 0) {
-                container.innerHTML = '<div class="no-data">No submissions found for the selected week.</div>';
-                return;
-            }
-            
-            let tableHTML = `
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Timestamp</th>
-                            <th>Player</th>
-                            <th>Week</th>
-                            <th>Hole 1</th>
-                            <th>Hole 2</th>
-                            <th>Hole 3</th>
-                            <th>Total</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            filteredSubmissions.forEach((submission, index) => {
-                const originalIndex = submissions.indexOf(submission);
-                tableHTML += `
-                    <tr id="row-${originalIndex}">
-                        <td>${submission.timestamp}</td>
-                        <td>${submission.name}</td>
-                        <td>${submission.weekTitle}</td>
-                        <td><span class="score-display" id="score-${originalIndex}-0">${submission.scores[0]}</span></td>
-                        <td><span class="score-display" id="score-${originalIndex}-1">${submission.scores[1]}</span></td>
-                        <td><span class="score-display" id="score-${originalIndex}-2">${submission.scores[2]}</span></td>
-                        <td><span class="total-display" id="total-${originalIndex}">${submission.total}</span></td>
-                        <td>
-                            <button class="admin-btn-small edit-btn" onclick="editScore(${originalIndex})">Edit</button>
-                            <button class="admin-btn-small delete-btn" onclick="deleteScore(${originalIndex})">Delete</button>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tableHTML += '</tbody></table>';
-            container.innerHTML = tableHTML;
-        }
-
-        function editScore(index) {
-            const submission = submissions[index];
-            const row = document.getElementById(`row-${index}`);
-            
-            // Replace score displays with inputs
-            for (let i = 0; i < 3; i++) {
-                const scoreCell = document.getElementById(`score-${index}-${i}`);
-                scoreCell.innerHTML = `<input type="number" class="edit-input" id="edit-${index}-${i}" value="${submission.scores[i]}" min="1" max="15">`;
-            }
-            
-            // Replace action buttons
-            const actionCell = row.querySelector('td:last-child');
-            actionCell.innerHTML = `
-                <button class="admin-btn-small save-btn" onclick="saveScore(${index})">Save</button>
-                <button class="admin-btn-small cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
-            `;
-        }
-
-        function saveScore(index) {
-            const newScores = [];
-            let newTotal = 0;
-            
-            // Get new scores from inputs
-            for (let i = 0; i < 3; i++) {
-                const input = document.getElementById(`edit-${index}-${i}`);
-                const score = parseInt(input.value);
-                if (isNaN(score) || score < 1 || score > 15) {
-                    alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
-                    return;
-                }
-                newScores.push(score);
-                newTotal += score;
-            }
-            
-            // Update submission
-            submissions[index].scores = newScores;
-            submissions[index].total = newTotal;
-            
-            // Refresh admin table and leaderboard
-            updateAdminTable();
-            updateLeaderboard();
-            
-            alert('Score updated successfully!');
-        }
-
-        function cancelEdit(index) {
-            updateAdminTable();
-        }
-
-        function deleteScore(index) {
-            const submission = submissions[index];
-            if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
-                submissions.splice(index, 1);
-                updateAdminTable();
-                updateLeaderboard();
-                alert('Score deleted successfully!');
-            }
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('adminModal');
-            if (event.target == modal) {
-                closeAdminModal();
-            }
-        }
-
-        // Tab switching function
-        function switchTab(tabName) {
-            // Hide all tab contents
-            const tabContents = document.querySelectorAll('.tab-content');
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Remove active class from all tabs
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            // Show selected tab content and activate tab
-            if (tabName === 'submit') {
-                document.getElementById('submitTab').classList.add('active');
-                document.querySelector('.tab[onclick="switchTab(\'submit\')"]').classList.add('active');
-            } else if (tabName === 'leaderboard') {
-                document.getElementById('leaderboardTab').classList.add('active');
-                document.querySelector('.tab[onclick="switchTab(\'leaderboard\')"]').classList.add('active');
-                updateLeaderboard(); // Update leaderboard when switching to it
-            }
-        }
-
-        // Update leaderboard function
-        function updateLeaderboard() {
-            const weekFilter = document.getElementById('weekFilter').value;
-            const leaderboardContent = document.getElementById('leaderboardContent');
-            
-            if (submissions.length === 0) {
-                leaderboardContent.innerHTML = '<div class="no-data">No scores submitted yet. Be the first to submit your scores!</div>';
-                return;
-            }
-            
-            let filteredSubmissions = submissions;
-            
-            if (weekFilter !== 'all') {
-                filteredSubmissions = submissions.filter(sub => sub.week === weekFilter);
-            }
-            
-            if (filteredSubmissions.length === 0) {
-                leaderboardContent.innerHTML = '<div class="no-data">No scores found for the selected week.</div>';
-                return;
-            }
-            
-            // Calculate leaderboard data
-            let leaderboardData = [];
-            
-            if (weekFilter === 'all') {
-                // Overall leaderboard - sum all scores for each player
-                const playerTotals = {};
-                filteredSubmissions.forEach(sub => {
-                    if (playerTotals[sub.name]) {
-                        playerTotals[sub.name].total += sub.total;
-                        playerTotals[sub.name].weeks++;
-                    }
-                });
-                
-                leaderboardData = Object.values(playerTotals);
-            } else {
-                // Weekly leaderboard
-                leaderboardData = filteredSubmissions.map(sub => ({
-                    name: sub.name,
-                    total: sub.total,
-                    phone: sub.phone,
-                    scores: sub.scores
-                }));
-            }
-            
-            // Sort by lowest score (best score in golf)
-            leaderboardData.sort((a, b) => a.total - b.total);
-            
-            // Create leaderboard table
-            let tableHTML = `
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Player</th>
-                            <th>Total Score</th>
-                            ${weekFilter === 'all' ? '<th>Weeks Played</th>' : '<th>Individual Hole Scores</th>'}
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            leaderboardData.forEach((player, index) => {
-                const rank = index + 1;
-                let rowClass = '';
-                if (rank === 1) rowClass = 'rank-1';
-                else if (rank === 2) rowClass = 'rank-2';
-                else if (rank === 3) rowClass = 'rank-3';
-                
-                const extraColumn = weekFilter === 'all' 
-                    ? `<td>${player.weeks || 1}</td>`
-                    : `<td>${player.scores ? player.scores.join(', ') : 'N/A'}</td>`;
-                
-                tableHTML += `
-                    <tr class="${rowClass}">
-                        <td class="rank-cell">${rank}</td>
-                        <td>${player.name}</td>
-                        <td class="total-score">${player.total}</td>
-                        ${extraColumn}
-                    </tr>
-                `;
-            });
-            
-            tableHTML += '</tbody></table>';
-            leaderboardContent.innerHTML = tableHTML;
-        }
-
-        // Handle week selection
-        document.getElementById('weekSelect').addEventListener('change', function() {
-            const selectedWeek = this.value;
-            const courseInfo = document.getElementById('courseInfo');
-            const courseTitle = document.getElementById('courseTitle');
-            const holesContainer = document.getElementById('holesContainer');
-
-            if (selectedWeek && courseData[selectedWeek]) {
-                const course = courseData[selectedWeek];
-                courseTitle.textContent = course.title;
-                
-                // Clear previous holes
-                holesContainer.innerHTML = '';
-                
-                // Add holes
-                course.holes.forEach((hole, index) => {
-                    const holeDiv = document.createElement('div');
-                    holeDiv.className = 'hole-input';
-                    holeDiv.innerHTML = `
-                        <label for="hole${index}">${hole.type} - ${hole.hole} (Par ${hole.par}):</label>
-                        <input type="text" id="hole${index}" name="hole${index}" 
-                               placeholder="Enter score" required pattern="[0-9]+" 
-                               title="Please enter a valid score (numbers only)">
-                    `;
-                    holesContainer.appendChild(holeDiv);
-                });
-                
-                courseInfo.style.display = 'block';
-            } else {
-                courseInfo.style.display = 'none';
-            }
-        });
-
-        // Handle form submission
-        document.getElementById('scoreForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-      const submitBtn = this.querySelector('.submit-btn');
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Submitting...';
-    submitBtn.disabled = true;
-    
-    const formData = new FormData(this);
-    const selectedWeek = formData.get('weekSelect');
-    const course = courseData[selectedWeek];
-    
-    // Collect scores
-    const scores = [];
-    let total = 0;
-    for (let i = 0; i < course.holes.length; i++) {
-        const score = parseInt(formData.get(`hole${i}`));
-        scores.push(score);
-        total += score;
+// Course data
+const courseData = {
+    week1: {
+        title: "Week 1 – Quail Hollow Club (Championship Vibes)",
+        holes: [
+            { type: "Par 3", hole: "Hole 17", par: 3 },
+            { type: "Par 4", hole: "Hole 2", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week2: {
+        title: "Week 2 – Torrey Pines (California Dreaming)",
+        holes: [
+            { type: "Par 3", hole: "Hole 3", par: 3 },
+            { type: "Par 4", hole: "Hole 4", par: 4 },
+            { type: "Par 5", hole: "Hole 18", par: 5 }
+        ]
+    },
+    week3: {
+        title: "Week 3 – Royal St. George's (British Open Week)",
+        holes: [
+            { type: "Par 3", hole: "Hole 6", par: 3 },
+            { type: "Par 4", hole: "Hole 1", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week4: {
+        title: "Week 4 – Valhalla Golf Club (Major Season)",
+        holes: [
+            { type: "Par 3", hole: "Hole 8", par: 3 },
+            { type: "Par 4", hole: "Hole 13", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week5: {
+        title: "Week 5 – Augusta National",
+        holes: [
+            { type: "Par 3", hole: "Hole 12", par: 3 },
+            { type: "Par 4", hole: "Hole 11", par: 4 },
+            { type: "Par 5", hole: "Hole 13", par: 5 }
+        ]
+    },
+    week6: {
+        title: "Week 6 – St. Andrews Old Course (Finale & Trophy Night)",
+        holes: [
+            { type: "Par 3", hole: "Hole 8", par: 3 },
+            { type: "Par 4", hole: "Hole 17", par: 4 },
+            { type: "Par 5", hole: "Hole 15", par: 5 }
+        ]
     }
-    
-    // Create submission object
-    const submission = {
-        timestamp: new Date().toISOString(),
-        name: formData.get('playerName'),
-        handicap: formData.get('playerHandicap'),
-        phone: formData.get('phoneNumber'),
-        week: selectedWeek,
-        weekTitle: course.title,
-        scores: scores,
-        total: total
-    };
-    
-    try {
-        // Send to Google Sheets
-        const response = await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'addScore',
-                data: submission
-            })
-        });
-        
-        // Show success message
-        document.getElementById('successMessage').style.display = 'block';
-        
-        // Reset form
-        this.reset();
-        document.getElementById('courseInfo').style.display = 'none';
-        
-        // Refresh leaderboard
-        await loadScoresFromSheets();
-        updateLeaderboard();
-        
-    } catch (error) {
-        console.error('Error submitting score:', error);
-        alert('Error submitting score. Please try again.');
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-            document.getElementById('successMessage').style.display = 'none';
-        }, 5000);
-    }
-});
+};
 
-// Function to load scores from Google Sheets
-async function loadScoresFromSheets() {
-    try {
-        const response = await fetch(scriptURL + '?action=getScores');
-        const data = await response.json();
-        submissions = data.scores || [];
-    } catch (error) {
-        console.error('Error loading scores:', error);
-        submissions = [];
+// Tab switching function
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected tab content and activate tab
+    if (tabName === 'submit') {
+        const submitTab = document.getElementById('submitTab');
+        const submitButton = document.querySelector('.tab[onclick="switchTab(\'submit\')"]');
+        if (submitTab) submitTab.classList.add('active');
+        if (submitButton) submitButton.classList.add('active');
+    } else if (tabName === 'leaderboard') {
+        const leaderboardTab = document.getElementById('leaderboardTab');
+        const leaderboardButton = document.querySelector('.tab[onclick="switchTab(\'leaderboard\')"]');
+        if (leaderboardTab) leaderboardTab.classList.add('active');
+        if (leaderboardButton) leaderboardButton.classList.add('active');
+        updateLeaderboard(); // Update leaderboard when switching to it
     }
 }
 
-// Load scores when page loads
-window.addEventListener('load', async function() {
-    await loadScoresFromSheets();
-    updateLeaderboard();
-});
+// Admin functions
+function openAdminModal() {
+    const modal = document.getElementById('adminModal');
+    if (!modal) return;
+    
+    modal.style.display = 'block';
+    if (isAdminLoggedIn) {
+        const loginDiv = document.getElementById('adminLogin');
+        const panelDiv = document.getElementById('adminPanel');
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (panelDiv) panelDiv.style.display = 'block';
+        updateAdminTable();
+    } else {
+        const loginDiv = document.getElementById('adminLogin');
+        const panelDiv = document.getElementById('adminPanel');
+        if (loginDiv) loginDiv.style.display = 'block';
+        if (panelDiv) panelDiv.style.display = 'none';
+    }
+}
 
-// Modified admin functions to work with Google Sheets
+function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    const passwordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    
+    if (modal) modal.style.display = 'none';
+    if (passwordInput) passwordInput.value = '';
+    if (loginError) loginError.style.display = 'none';
+}
+
+function adminLogin() {
+    const passwordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    const loginDiv = document.getElementById('adminLogin');
+    const panelDiv = document.getElementById('adminPanel');
+    
+    if (!passwordInput) return;
+    
+    const password = passwordInput.value;
+    if (password === adminPassword) {
+        isAdminLoggedIn = true;
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (panelDiv) panelDiv.style.display = 'block';
+        if (loginError) loginError.style.display = 'none';
+        updateAdminTable();
+    } else {
+        if (loginError) loginError.style.display = 'block';
+    }
+}
+
+function updateAdminTable() {
+    const weekFilter = document.getElementById('adminWeekFilter');
+    const container = document.getElementById('adminTableContainer');
+    
+    if (!container) return;
+    
+    if (submissions.length === 0) {
+        container.innerHTML = '<div class="no-data">No submissions to manage.</div>';
+        return;
+    }
+    
+    let filteredSubmissions = submissions;
+    if (weekFilter && weekFilter.value !== 'all') {
+        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
+    }
+    
+    if (filteredSubmissions.length === 0) {
+        container.innerHTML = '<div class="no-data">No submissions found for the selected week.</div>';
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Player</th>
+                    <th>Week</th>
+                    <th>Hole 1</th>
+                    <th>Hole 2</th>
+                    <th>Hole 3</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    filteredSubmissions.forEach((submission, index) => {
+        const originalIndex = submissions.indexOf(submission);
+        tableHTML += `
+            <tr id="row-${originalIndex}">
+                <td>${new Date(submission.timestamp).toLocaleString()}</td>
+                <td>${submission.name}</td>
+                <td>${submission.weekTitle}</td>
+                <td><span class="score-display" id="score-${originalIndex}-0">${submission.scores[0]}</span></td>
+                <td><span class="score-display" id="score-${originalIndex}-1">${submission.scores[1]}</span></td>
+                <td><span class="score-display" id="score-${originalIndex}-2">${submission.scores[2]}</span></td>
+                <td><span class="total-display" id="total-${originalIndex}">${submission.total}</span></td>
+                <td>
+                    <button class="admin-btn-small edit-btn" onclick="editScore(${originalIndex})">Edit</button>
+                    <button class="admin-btn-small delete-btn" onclick="deleteScore(${originalIndex})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+function editScore(index) {
+    const submission = submissions[index];
+    const row = document.getElementById(`row-${index}`);
+    
+    if (!submission || !row) return;
+    
+    // Replace score displays with inputs
+    for (let i = 0; i < 3; i++) {
+        const scoreCell = document.getElementById(`score-${index}-${i}`);
+        if (scoreCell) {
+            scoreCell.innerHTML = `<input type="number" class="edit-input" id="edit-${index}-${i}" value="${submission.scores[i]}" min="1" max="15">`;
+        }
+    }
+    
+    // Replace action buttons
+    const actionCell = row.querySelector('td:last-child');
+    if (actionCell) {
+        actionCell.innerHTML = `
+            <button class="admin-btn-small save-btn" onclick="saveScore(${index})">Save</button>
+            <button class="admin-btn-small cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
+        `;
+    }
+}
+
 async function saveScore(index) {
     const newScores = [];
     let newTotal = 0;
@@ -1076,6 +845,10 @@ async function saveScore(index) {
     // Get new scores from inputs
     for (let i = 0; i < 3; i++) {
         const input = document.getElementById(`edit-${index}-${i}`);
+        if (!input) {
+            alert('Error: Could not find score input');
+            return;
+        }
         const score = parseInt(input.value);
         if (isNaN(score) || score < 1 || score > 15) {
             alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
@@ -1115,8 +888,14 @@ async function saveScore(index) {
     }
 }
 
+function cancelEdit(index) {
+    updateAdminTable();
+}
+
 async function deleteScore(index) {
     const submission = submissions[index];
+    if (!submission) return;
+    
     if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
         try {
             // Delete from Google Sheets
@@ -1143,14 +922,290 @@ async function deleteScore(index) {
         }
     }
 }
-        });
 
-        // Handle Enter key in admin password field
-        document.getElementById('adminPassword').addEventListener('keypress', function(e) {
+// Update leaderboard function
+function updateLeaderboard() {
+    const weekFilter = document.getElementById('weekFilter');
+    const leaderboardContent = document.getElementById('leaderboardContent');
+    
+    if (!leaderboardContent) return;
+    
+    if (submissions.length === 0) {
+        leaderboardContent.innerHTML = '<div class="no-data">No scores submitted yet. Be the first to submit your scores!</div>';
+        return;
+    }
+    
+    let filteredSubmissions = submissions;
+    
+    if (weekFilter && weekFilter.value !== 'all') {
+        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
+    }
+    
+    if (filteredSubmissions.length === 0) {
+        leaderboardContent.innerHTML = '<div class="no-data">No scores found for the selected week.</div>';
+        return;
+    }
+    
+    // Calculate leaderboard data
+    let leaderboardData = [];
+    
+    if (weekFilter && weekFilter.value === 'all') {
+        // Overall leaderboard - sum all scores for each player
+        const playerTotals = {};
+        filteredSubmissions.forEach(sub => {
+            if (playerTotals[sub.name]) {
+                playerTotals[sub.name].total += sub.total;
+                playerTotals[sub.name].weeks++;
+            } else {
+                playerTotals[sub.name] = {
+                    name: sub.name,
+                    total: sub.total,
+                    weeks: 1
+                };
+            }
+        });
+        
+        leaderboardData = Object.values(playerTotals);
+    } else {
+        // Weekly leaderboard
+        leaderboardData = filteredSubmissions.map(sub => ({
+            name: sub.name,
+            total: sub.total,
+            phone: sub.phone,
+            scores: sub.scores
+        }));
+    }
+    
+    // Sort by lowest score (best score in golf)
+    leaderboardData.sort((a, b) => a.total - b.total);
+    
+    // Create leaderboard table
+    let tableHTML = `
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Total Score</th>
+                    ${(weekFilter && weekFilter.value === 'all') ? '<th>Weeks Played</th>' : '<th>Individual Hole Scores</th>'}
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    leaderboardData.forEach((player, index) => {
+        const rank = index + 1;
+        let rowClass = '';
+        if (rank === 1) rowClass = 'rank-1';
+        else if (rank === 2) rowClass = 'rank-2';
+        else if (rank === 3) rowClass = 'rank-3';
+        
+        const extraColumn = (weekFilter && weekFilter.value === 'all') 
+            ? `<td>${player.weeks || 1}</td>`
+            : `<td>${player.scores ? player.scores.join(', ') : 'N/A'}</td>`;
+        
+        tableHTML += `
+            <tr class="${rowClass}">
+                <td class="rank-cell">${rank}</td>
+                <td>${player.name}</td>
+                <td class="total-score">${player.total}</td>
+                ${extraColumn}
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    leaderboardContent.innerHTML = tableHTML;
+}
+
+// Function to load scores from Google Sheets
+async function loadScoresFromSheets() {
+    try {
+        const response = await fetch(scriptURL + '?action=getScores');
+        const data = await response.json();
+        submissions = data.scores || [];
+    } catch (error) {
+        console.error('Error loading scores:', error);
+        submissions = [];
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Load scores when page loads
+    loadScoresFromSheets().then(() => {
+        updateLeaderboard();
+    });
+
+    // Handle week selection
+    const weekSelect = document.getElementById('weekSelect');
+    if (weekSelect) {
+        weekSelect.addEventListener('change', function() {
+            const selectedWeek = this.value;
+            const courseInfo = document.getElementById('courseInfo');
+            const courseTitle = document.getElementById('courseTitle');
+            const holesContainer = document.getElementById('holesContainer');
+
+            if (selectedWeek && courseData[selectedWeek] && courseInfo && courseTitle && holesContainer) {
+                const course = courseData[selectedWeek];
+                courseTitle.textContent = course.title;
+                
+                // Clear previous holes
+                holesContainer.innerHTML = '';
+                
+                // Add holes
+                course.holes.forEach((hole, index) => {
+                    const holeDiv = document.createElement('div');
+                    holeDiv.className = 'hole-input';
+                    holeDiv.innerHTML = `
+                        <label for="hole${index}">${hole.type} - ${hole.hole} (Par ${hole.par}):</label>
+                        <input type="number" id="hole${index}" name="hole${index}" 
+                               placeholder="Enter score" required min="1" max="15">
+                    `;
+                    holesContainer.appendChild(holeDiv);
+                });
+                
+                courseInfo.style.display = 'block';
+            } else if (courseInfo) {
+                courseInfo.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle form submission
+    const scoreForm = document.getElementById('scoreForm');
+    if (scoreForm) {
+        scoreForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('.submit-btn');
+            if (!submitBtn) return;
+            
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            const selectedWeek = formData.get('weekSelect');
+            const course = courseData[selectedWeek];
+            
+            if (!course) {
+                alert('Please select a valid week');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Collect scores
+            const scores = [];
+            let total = 0;
+            let hasError = false;
+            
+            for (let i = 0; i < course.holes.length; i++) {
+                const scoreValue = formData.get(`hole${i}`);
+                const score = parseInt(scoreValue);
+                if (isNaN(score) || score < 1 || score > 15) {
+                    alert(`Please enter a valid score (1-15) for ${course.holes[i].hole}`);
+                    hasError = true;
+                    break;
+                }
+                scores.push(score);
+                total += score;
+            }
+            
+            if (hasError) {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Create submission object
+            const submission = {
+                timestamp: new Date().toISOString(),
+                name: formData.get('playerName'),
+                handicap: formData.get('playerHandicap'),
+                phone: formData.get('phoneNumber'),
+                week: selectedWeek,
+                weekTitle: course.title,
+                scores: scores,
+                total: total
+            };
+            
+            try {
+                // Send to Google Sheets
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addScore',
+                        data: submission
+                    })
+                });
+                
+                // Add to local submissions
+                submissions.push(submission);
+                
+                // Show success message
+                const successMessage = document.getElementById('successMessage');
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                }
+                
+                // Reset form
+                this.reset();
+                const courseInfo = document.getElementById('courseInfo');
+                if (courseInfo) courseInfo.style.display = 'none';
+                
+                // Refresh leaderboard
+                updateLeaderboard();
+                
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                alert('Error submitting score. Please try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Handle Enter key in admin password field
+    const adminPassword = document.getElementById('adminPassword');
+    if (adminPassword) {
+        adminPassword.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 adminLogin();
             }
         });
+    }
+
+    // Handle leaderboard week filter
+    const weekFilter = document.getElementById('weekFilter');
+    if (weekFilter) {
+        weekFilter.addEventListener('change', updateLeaderboard);
+    }
+
+    // Handle admin week filter
+    const adminWeekFilter = document.getElementById('adminWeekFilter');
+    if (adminWeekFilter) {
+        adminWeekFilter.addEventListener('change', updateAdminTable);
+    }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('adminModal');
+    if (event.target === modal) {
+        closeAdminModal();
+    }
+}
     </script>
 </body>
 </html>
