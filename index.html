@@ -1013,7 +1013,7 @@
     
     try {
         // Send to Google Sheets
-        const response = await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+        const response = await fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -1053,7 +1053,7 @@
 // Function to load scores from Google Sheets
 async function loadScoresFromSheets() {
     try {
-        const response = await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec + '?action=getScores');
+        const response = await fetch(scriptURL + '?action=getScores');
         const data = await response.json();
         submissions = data.scores || [];
     } catch (error) {
@@ -1091,7 +1091,7 @@ async function saveScore(index) {
     
     try {
         // Update in Google Sheets
-        await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+        await fetch(scriptURL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -1120,7 +1120,7 @@ async function deleteScore(index) {
     if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
         try {
             // Delete from Google Sheets
-            await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+            await fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
