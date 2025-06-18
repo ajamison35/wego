@@ -620,6 +620,7 @@
         let submissions = [];
         let isAdminLoggedIn = false;
         const adminPassword = "golf2024"; // Change this to your desired password
+        const https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec = 'https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec'
 
         // Course data
         const courseData = {
@@ -976,47 +977,168 @@
         document.getElementById('scoreForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
-            const selectedWeek = formData.get('weekSelect');
-            const course = courseData[selectedWeek];
+      const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting...';
+    submitBtn.disabled = true;
+    
+    const formData = new FormData(this);
+    const selectedWeek = formData.get('weekSelect');
+    const course = courseData[selectedWeek];
+    
+    // Collect scores
+    const scores = [];
+    let total = 0;
+    for (let i = 0; i < course.holes.length; i++) {
+        const score = parseInt(formData.get(`hole${i}`));
+        scores.push(score);
+        total += score;
+    }
+    
+    // Create submission object
+    const submission = {
+        timestamp: new Date().toISOString(),
+        name: formData.get('playerName'),
+        handicap: formData.get('playerHandicap'),
+        phone: formData.get('phoneNumber'),
+        week: selectedWeek,
+        weekTitle: course.title,
+        scores: scores,
+        total: total
+    };
+    
+    try {
+        // Send to Google Sheets
+        const response = await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'addScore',
+                data: submission
+            })
+        });
+        
+        // Show success message
+        document.getElementById('successMessage').style.display = 'block';
+        
+        // Reset form
+        this.reset();
+        document.getElementById('courseInfo').style.display = 'none';
+        
+        // Refresh leaderboard
+        await loadScoresFromSheets();
+        updateLeaderboard();
+        
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        alert('Error submitting score. Please try again.');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+            document.getElementById('successMessage').style.display = 'none';
+        }, 5000);
+    }
+});
+
+// Function to load scores from Google Sheets
+async function loadScoresFromSheets() {
+    try {
+        const response = await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec + '?action=getScores');
+        const data = await response.json();
+        submissions = data.scores || [];
+    } catch (error) {
+        console.error('Error loading scores:', error);
+        submissions = [];
+    }
+}
+
+// Load scores when page loads
+window.addEventListener('load', async function() {
+    await loadScoresFromSheets();
+    updateLeaderboard();
+});
+
+// Modified admin functions to work with Google Sheets
+async function saveScore(index) {
+    const newScores = [];
+    let newTotal = 0;
+    
+    // Get new scores from inputs
+    for (let i = 0; i < 3; i++) {
+        const input = document.getElementById(`edit-${index}-${i}`);
+        const score = parseInt(input.value);
+        if (isNaN(score) || score < 1 || score > 15) {
+            alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
+            return;
+        }
+        newScores.push(score);
+        newTotal += score;
+    }
+    
+    // Update submission locally
+    submissions[index].scores = newScores;
+    submissions[index].total = newTotal;
+    
+    try {
+        // Update in Google Sheets
+        await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'updateScore',
+                index: index,
+                data: submissions[index]
+            })
+        });
+        
+        // Refresh admin table and leaderboard
+        updateAdminTable();
+        updateLeaderboard();
+        
+        alert('Score updated successfully!');
+    } catch (error) {
+        console.error('Error updating score:', error);
+        alert('Error updating score. Please try again.');
+    }
+}
+
+async function deleteScore(index) {
+    const submission = submissions[index];
+    if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
+        try {
+            // Delete from Google Sheets
+            await fetch(https://script.google.com/macros/s/AKfycbyTo2Y1FFJZZF09e6Sz62l4mEhaL1l7x5KL3Q6GrFwblSu2ees619RwtXhgDaQ2Y99_Tw/exec, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'deleteScore',
+                    index: index
+                })
+            });
             
-            // Collect scores
-            const scores = [];
-            let total = 0;
-            for (let i = 0; i < course.holes.length; i++) {
-                const score = parseInt(formData.get(`hole${i}`));
-                scores.push(score);
-                total += score;
-            }
-            
-            // Create submission object
-            const submission = {
-                timestamp: new Date().toLocaleString(),
-                name: formData.get('playerName'),
-                phone: formData.get('phoneNumber'),
-                week: selectedWeek,
-                weekTitle: course.title,
-                scores: scores,
-                total: total
-            };
-            
-            // Add to submissions array
-            submissions.push(submission);
-            
-            // Show success message
-            document.getElementById('successMessage').style.display = 'block';
-            
-            // Reset form
-            this.reset();
-            document.getElementById('courseInfo').style.display = 'none';
-            
-            // Update leaderboard
+            // Remove locally
+            submissions.splice(index, 1);
+            updateAdminTable();
             updateLeaderboard();
-            
-            // Hide success message after 5 seconds
-            setTimeout(() => {
-                document.getElementById('successMessage').style.display = 'none';
-            }, 5000);
+            alert('Score deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting score:', error);
+            alert('Error deleting score. Please try again.');
+        }
+    }
+}
         });
 
         // Handle Enter key in admin password field
