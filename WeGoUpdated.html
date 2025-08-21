@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Simulator Tournament - Score Submission</title>
+    <style>
+        /* ==============================================
+           THEME VARIABLES - UPDATE THESE TO REBRAND
+           ============================================== */
+        :root {
+            /* Primary Colors - ECU Purple & Gold */
+            --primary-color: #380071;          /* ECU Purple - Main brand color */
+            --primary-dark: #4A1E70;           /* Darker ECU Purple */
+            --primary-light: #7B4BAD;          /* Lighter ECU Purple */
+            --accent-color: #FFB700;            /* ECU Gold - Accent/border color */
+            
+            /* Background Colors */
+            --bg-gradient-start: #592C85;      /* ECU Purple gradient start */
+            --bg-gradient-end: #7B4BAD;        /* Light ECU Purple gradient end */
+            --card-background: white;           /* Main card background */
+            --secondary-background: #f8f9fa;    /* Secondary sections */
+            --info-background: #F4F0FB;        /* Light purple info boxes background */
+            --info-border: #D1C4E9;            /* Purple info boxes border */
+            
+            /* Text Colors */
+            --text-primary: #333;               /* Primary text */
+            --text-secondary: #6c757d;          /* Secondary text */
+            --text-on-primary: white;           /* Text on primary color */
+            --title-color: #592C85;             /* ECU Purple section titles */
+            
+            /* Interactive Colors */
+            --button-gradient-start: #592C85;   /* ECU Purple button gradient start */
+            --button-gradient-end: #7B4BAD;     /* Light ECU Purple button gradient end */
+            --button-hover-shadow: rgba(89, 44, 133, 0.3); /* ECU Purple button hover shadow */
+            --focus-color: #592C85;             /* ECU Purple focus states */
+            --focus-shadow: rgba(89, 44, 133, 0.1); /* ECU Purple focus shadow */
+            
+            /* Status Colors */
+            --success-bg: #d4edda;              /* Success message background */
+            --success-text: #155724;            /* Success message text */
+            --success-border: #c3e6cb;          /* Success message border */
+            --error-bg: #f8d7da;                /* Error message background */
+            --error-text: #721c24;              /* Error message text */
+            --error-border: #f5c6cb;            /* Error message border */
+            
+            /* Leaderboard Colors */
+            --rank-1-bg: linear-gradient(135deg, #FFB700, #FFC933); /* 1st place - ECU Gold */
+            --rank-2-bg: linear-gradient(135deg, #c0c0c0, #e2e2e2); /* 2nd place - Silver */
+            --rank-3-bg: linear-gradient(135deg, #cd7f32, #daa520); /* 3rd place - Bronze */
+            
+            /* Admin Colors */
+            --admin-danger: #dc3545;            /* Danger/delete actions */
+            --admin-warning: #ffc107;           /* Warning/edit actions */
+            --admin-success: #28a745;           /* Success/save actions */
+            --admin-secondary: #6c757d;         /* Secondary actions */
+            
+            /* Logo/Icon Settings */
+            --logo-primary: '🏌️';               /* Primary logo/emoji */
+            --logo-secondary: '🏆';             /* Secondary logo (leaderboard) */
+            --logo-admin: '🔧';                 /* Admin logo */
+            --logo-warning: '⚠️';               /* Warning logo */
+            
+            /* Organization Info */
+            --org-name: 'Golf Simulator Tournament';
+            --org-subtitle: 'Wego Golf X The Retreat Club';
+            --org-tagline: 'Submit Your Weekly Scores & View Leaderboard';
+        }
+        /* ==============================================
+           APPLY THEME VARIABLES TO STYLES
+           ============================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            color: var(--text-on-primary);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .header h1:before {
+            content: var(--logo-primary);
+            margin-right: 10px;
+        }
+
+        .header h1:after {
+            content: var(--logo-primary);
+            margin-left: 10px;
+        }
+
+        .header h2 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            opacity: 0.95;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .admin-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            color: var(--text-on-primary);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .participant-info {
+            background: var(--secondary-background);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .participant-info h3 {
+            color: var(--title-color);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        input[type="text"], input[type="number"], input[type="tel"], input[type="password"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: var(--focus-color);
+            box-shadow: 0 0 0 3px var(--focus-shadow);
+        }
+
+        .week-selector {
+            margin-bottom: 30px;
+        }
+
+        .course-info {
+            background: var(--info-background);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid var(--info-border);
+        }
+
+        .course-info h4 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .holes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .hole-input {
+            background: var(--card-background);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        .hole-input label {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .hole-input input {
+            margin-bottom: 0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--button-gradient-start), var(--button-gradient-end));
+            color: var(--text-on-primary);
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--button-hover-shadow);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--secondary-background);
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            background: #e9ecef;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            color: #495057;
+        }
+
+        .tab.active {
+            background: var(--card-background);
+            color: var(--primary-color);
+        }
+
+        .tab:hover:not(.active) {
+            background: #dee2e6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .leaderboard-section {
+            padding: 40px;
+            background: var(--card-background);
+        }
+
+        .leaderboard-section h2:before {
+            content: var(--logo-secondary);
+            margin-right: 10px;
+        }
+
+        .leaderboard-section h2:after {
+            content: var(--logo-secondary);
+            margin-left: 10px;
+        }
+
+        .week-filter {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .week-filter select {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: var(--card-background);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .leaderboard-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: var(--text-on-primary);
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .leaderboard-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table tr:nth-child(even) {
+            background: var(--secondary-background);
+        }
+
+        .leaderboard-table tr:hover {
+            background: var(--info-background);
+        }
+
+        .rank-1 {
+            background: var(--rank-1-bg) !important;
+            font-weight: bold;
+        }
+
+        .rank-2 {
+            background: var(--rank-2-bg) !important;
+            font-weight: bold;
+        }
+
+        .rank-3 {
+            background: var(--rank-3-bg) !important;
+            font-weight: bold;
+        }
+
+        .rank-cell {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .total-score {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--primary-color);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .success-message {
+            background: var(--success-bg);
+            color: var(--success-text);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--success-border);
+            display: none;
+        }
+
+        .error-message {
+            background: var(--error-bg);
+            color: var(--error-text);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--error-border);
+            display: none;
+        }
+
+        /* Admin Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+            color: var(--text-on-primary);
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .modal-header h2:before {
+            content: var(--logo-admin);
+            margin-right: 10px;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            color: var(--text-on-primary);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .admin-controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--secondary-background);
+            border-radius: 10px;
+            border-left: 5px solid var(--admin-danger);
+        }
+
+        .admin-controls h3:before {
+            content: var(--logo-warning);
+            margin-right: 10px;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .admin-table th {
+            background: var(--admin-secondary);
+            color: var(--text-on-primary);
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .admin-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .admin-table tr:nth-child(even) {
+            background: var(--secondary-background);
+        }
+
+        .admin-btn-small {
+            padding: 5px 10px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .edit-btn {
+            background: var(--admin-warning);
+            color: #212529;
+        }
+
+        .delete-btn {
+            background: var(--admin-danger);
+            color: var(--text-on-primary);
+        }
+
+        .save-btn {
+            background: var(--admin-success);
+            color: var(--text-on-primary);
+        }
+
+        .cancel-btn {
+            background: var(--admin-secondary);
+            color: var(--text-on-primary);
+        }
+
+        .admin-btn-small:hover {
+            opacity: 0.8;
+        }
+
+        .edit-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .login-form {
+            max-width: 300px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .login-form input {
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .holes-container {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 2% auto;
+            }
+
+            .admin-table {
+                font-size: 12px;
+            }
+
+            .admin-table th,
+            .admin-table td {
+                padding: 6px 4px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .header h2 {
+                font-size: 1.2em;
+            }
+        }
+
+        /* Dynamic content insertion using CSS variables */
+        .header h1 {
+            position: relative;
+        }
+
+        .header h1:after {
+            content: '';
+        }
+
+        .header h2:after {
+            content: var(--org-subtitle);
+        }
+
+        .header p:after {
+            content: var(--org-tagline);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="admin-btn" onclick="openAdminModal()">Admin</button>
+            <h1>Golf Simulator Tournament</h1>
+            <h2>Wego Golf X The Retreat Club</h2>
+            <p>Submit Your Weekly Scores & View Leaderboard</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('submit')">Submit Scores</button>
+            <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+        </div>
+
+        <!-- Submit Scores Tab -->
+        <div id="submitTab" class="tab-content active">
+            <div class="form-container">
+                <div class="success-message" id="successMessage">
+                    Score submitted successfully! Thank you for participating.
+                </div>
+
+                <form id="scoreForm">
+                    <div class="participant-info">
+                        <h3>Participant Information</h3>
+                        <div class="form-group">
+                            <label for="playerName">Player Name:</label>
+                            <input type="text" id="playerName" name="playerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="playerHandicap">Player Handicap:</label>
+                            <input type="number" id="playerHandicap" name="playerHandicap" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phoneNumber">Phone Number:</label>
+                            <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                        </div>
+                    </div>
+
+                    <div class="week-selector">
+                        <div class="form-group">
+                            <label for="weekSelect">Select Tournament Week:</label>
+                            <select id="weekSelect" name="weekSelect" required>
+                                <option value="">Choose a week...</option>
+                                <option value="week1">Week 1 - Quail Hollow Club (Championship Vibes)</option>
+                                <option value="week2">Week 2 - Torrey Pines (California Dreaming)</option>
+                                <option value="week3">Week 3 - Royal St. George's (British Open Week)</option>
+                                <option value="week4">Week 4 - Valhalla Golf Club (Major Season)</option>
+                                <option value="week5">Week 5 - Augusta National</option>
+                                <option value="week6">Week 6 - St. Andrews Old Course (Finale & Trophy Night)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="courseInfo" class="course-info" style="display: none;">
+                        <h4 id="courseTitle"></h4>
+                        <div class="holes-container" id="holesContainer">
+                            <!-- Holes will be populated by JavaScript -->
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Scores</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="leaderboardTab" class="tab-content">
+            <div class="leaderboard-section">
+                <h2 style="text-align: center; color: var(--title-color); margin-bottom: 30px;">Tournament Leaderboard</h2>
+                
+                <div class="week-filter">
+                    <label for="weekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
+                    <select id="weekFilter" onchange="updateLeaderboard()">
+                        <option value="all">All Weeks (Overall)</option>
+                        <option value="week1">Week 1 - Quail Hollow Club</option>
+                        <option value="week2">Week 2 - Torrey Pines</option>
+                        <option value="week3">Week 3 - Royal St. George's</option>
+                        <option value="week4">Week 4 - Valhalla Golf Club</option>
+                        <option value="week5">Week 5 - Augusta National</option>
+                        <option value="week6">Week 6 - St. Andrews Old Course</option>
+                    </select>
+                </div>
+
+                <div id="leaderboardContent">
+                    <div class="no-data">
+                        No scores submitted yet. Be the first to submit your scores!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Admin Panel</h2>
+                <span class="close" onclick="closeAdminModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="adminLogin" class="login-form">
+                    <h3>Admin Login</h3>
+                    <div class="error-message" id="loginError">
+                        Incorrect password. Please try again.
+                    </div>
+                    <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+                    <button class="submit-btn" onclick="adminLogin()">Login</button>
+                </div>
+
+                <div id="adminPanel" style="display: none;">
+                    <div class="admin-controls">
+                        <h3>Score Management</h3>
+                        <p>Use the buttons below to edit or delete individual scores. Changes are immediate and cannot be undone.</p>
+                    </div>
+
+                    <div class="week-filter" style="margin-bottom: 20px;">
+                        <label for="adminWeekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
+                        <select id="adminWeekFilter" onchange="updateAdminTable()">
+                            <option value="all">All Weeks</option>
+                            <option value="week1">Week 1 - Quail Hollow Club</option>
+                            <option value="week2">Week 2 - Torrey Pines</option>
+                            <option value="week3">Week 3 - Royal St. George's</option>
+                            <option value="week4">Week 4 - Valhalla Golf Club</option>
+                            <option value="week5">Week 5 - Augusta National</option>
+                            <option value="week6">Week 6 - St. Andrews Old Course</option>
+                        </select>
+                    </div>
+
+                    <div id="adminTableContainer">
+                        <!-- Admin table will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Store all submissions in memory
+let submissions = [];
+let isAdminLoggedIn = false;
+const adminPassword = "golf2024"; // Change this to your desired password
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyK-jgsoOUVikg-5OYtAkzKEErSKGCZ6IlTuNHm3NyWyzLMHpIKcadIIwsfHtZOORjE8A/exec';
+
+// Course data
+const courseData = {
+    week1: {
+        title: "Week 1 – Quail Hollow Club (Championship Vibes)",
+        holes: [
+            { type: "Par 3", hole: "Hole 17", par: 3 },
+            { type: "Par 4", hole: "Hole 2", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week2: {
+        title: "Week 2 – Torrey Pines (California Dreaming)",
+        holes: [
+            { type: "Par 3", hole: "Hole 3", par: 3 },
+            { type: "Par 4", hole: "Hole 4", par: 4 },
+            { type: "Par 5", hole: "Hole 18", par: 5 }
+        ]
+    },
+    week3: {
+        title: "Week 3 – Royal St. George's (British Open Week)",
+        holes: [
+            { type: "Par 3", hole: "Hole 6", par: 3 },
+            { type: "Par 4", hole: "Hole 1", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week4: {
+        title: "Week 4 – Valhalla Golf Club (Major Season)",
+        holes: [
+            { type: "Par 3", hole: "Hole 8", par: 3 },
+            { type: "Par 4", hole: "Hole 13", par: 4 },
+            { type: "Par 5", hole: "Hole 7", par: 5 }
+        ]
+    },
+    week5: {
+        title: "Week 5 – Augusta National",
+        holes: [
+            { type: "Par 3", hole: "Hole 12", par: 3 },
+            { type: "Par 4", hole: "Hole 11", par: 4 },
+            { type: "Par 5", hole: "Hole 13", par: 5 }
+        ]
+    },
+    week6: {
+        title: "Week 6 – St. Andrews Old Course (Finale & Trophy Night)",
+        holes: [
+            { type: "Par 3", hole: "Hole 8", par: 3 },
+            { type: "Par 4", hole: "Hole 17", par: 4 },
+            { type: "Par 5", hole: "Hole 15", par: 5 }
+        ]
+    }
+};
+// Tab switching function
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected tab content and activate tab
+    if (tabName === 'submit') {
+        const submitTab = document.getElementById('submitTab');
+        const submitButton = document.querySelector('.tab[onclick="switchTab(\'submit\')"]');
+        if (submitTab) submitTab.classList.add('active');
+        if (submitButton) submitButton.classList.add('active');
+    } else if (tabName === 'leaderboard') {
+        const leaderboardTab = document.getElementById('leaderboardTab');
+        const leaderboardButton = document.querySelector('.tab[onclick="switchTab(\'leaderboard\')"]');
+        if (leaderboardTab) leaderboardTab.classList.add('active');
+        if (leaderboardButton) leaderboardButton.classList.add('active');
+        updateLeaderboard(); // Update leaderboard when switching to it
+    }
+}
+
+// Admin functions
+function openAdminModal() {
+    const modal = document.getElementById('adminModal');
+    if (!modal) return;
+    
+    modal.style.display = 'block';
+    if (isAdminLoggedIn) {
+        const loginDiv = document.getElementById('adminLogin');
+        const panelDiv = document.getElementById('adminPanel');
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (panelDiv) panelDiv.style.display = 'block';
+        updateAdminTable();
+    } else {
+        const loginDiv = document.getElementById('adminLogin');
+        const panelDiv = document.getElementById('adminPanel');
+        if (loginDiv) loginDiv.style.display = 'block';
+        if (panelDiv) panelDiv.style.display = 'none';
+    }
+}
+
+function closeAdminModal() {
+    const modal = document.getElementById('adminModal');
+    const passwordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    
+    if (modal) modal.style.display = 'none';
+    if (passwordInput) passwordInput.value = '';
+    if (loginError) loginError.style.display = 'none';
+}
+
+function adminLogin() {
+    const passwordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    const loginDiv = document.getElementById('adminLogin');
+    const panelDiv = document.getElementById('adminPanel');
+    
+    if (!passwordInput) return;
+    
+    const password = passwordInput.value;
+    if (password === adminPassword) {
+        isAdminLoggedIn = true;
+        if (loginDiv) loginDiv.style.display = 'none';
+        if (panelDiv) panelDiv.style.display = 'block';
+        if (loginError) loginError.style.display = 'none';
+        updateAdminTable();
+    } else {
+        if (loginError) loginError.style.display = 'block';
+    }
+}
+
+function updateAdminTable() {
+    const weekFilter = document.getElementById('adminWeekFilter');
+    const container = document.getElementById('adminTableContainer');
+    
+    if (!container) return;
+    
+    if (submissions.length === 0) {
+        container.innerHTML = '<div class="no-data">No submissions to manage.</div>';
+        return;
+    }
+    
+    let filteredSubmissions = submissions;
+    if (weekFilter && weekFilter.value !== 'all') {
+        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
+    }
+    
+    if (filteredSubmissions.length === 0) {
+        container.innerHTML = '<div class="no-data">No submissions found for the selected week.</div>';
+        return;
+    }
+    
+    let tableHTML = `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Player</th>
+                    <th>Week</th>
+                    <th>Hole 1</th>
+                    <th>Hole 2</th>
+                    <th>Hole 3</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    filteredSubmissions.forEach((submission, index) => {
+        const originalIndex = submissions.indexOf(submission);
+        tableHTML += `
+            <tr id="row-${originalIndex}">
+                <td>${new Date(submission.timestamp).toLocaleString()}</td>
+                <td>${submission.name}</td>
+                <td>${submission.weekTitle}</td>
+                <td><span class="score-display" id="score-${originalIndex}-0">${submission.scores[0]}</span></td>
+                <td><span class="score-display" id="score-${originalIndex}-1">${submission.scores[1]}</span></td>
+                <td><span class="score-display" id="score-${originalIndex}-2">${submission.scores[2]}</span></td>
+                <td><span class="total-display" id="total-${originalIndex}">${submission.total}</span></td>
+                <td>
+                    <button class="admin-btn-small edit-btn" onclick="editScore(${originalIndex})">Edit</button>
+                    <button class="admin-btn-small delete-btn" onclick="deleteScore(${originalIndex})">Delete</button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    container.innerHTML = tableHTML;
+}
+
+function editScore(index) {
+    const submission = submissions[index];
+    const row = document.getElementById(`row-${index}`);
+    
+    if (!submission || !row) return;
+    
+    // Replace score displays with inputs
+    for (let i = 0; i < 3; i++) {
+        const scoreCell = document.getElementById(`score-${index}-${i}`);
+        if (scoreCell) {
+            scoreCell.innerHTML = `<input type="number" class="edit-input" id="edit-${index}-${i}" value="${submission.scores[i]}" min="1" max="15">`;
+        }
+    }
+    
+    // Replace action buttons
+    const actionCell = row.querySelector('td:last-child');
+    if (actionCell) {
+        actionCell.innerHTML = `
+            <button class="admin-btn-small save-btn" onclick="saveScore(${index})">Save</button>
+            <button class="admin-btn-small cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
+        `;
+    }
+}
+
+async function saveScore(index) {
+    const newScores = [];
+    let newTotal = 0;
+    
+    // Get new scores from inputs
+    for (let i = 0; i < 3; i++) {
+        const input = document.getElementById(`edit-${index}-${i}`);
+        if (!input) {
+            alert('Error: Could not find score input');
+            return;
+        }
+        const score = parseInt(input.value);
+        if (isNaN(score) || score < 1 || score > 15) {
+            alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
+            return;
+        }
+        newScores.push(score);
+        newTotal += score;
+    }
+    
+    // Update submission locally
+    submissions[index].scores = newScores;
+    submissions[index].total = newTotal;
+    
+    try {
+        // Update in Google Sheets
+        await fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'updateScore',
+                index: index,
+                data: submissions[index]
+            })
+        });
+        
+        // Refresh admin table and leaderboard
+        updateAdminTable();
+        updateLeaderboard();
+        
+        alert('Score updated successfully!');
+    } catch (error) {
+        console.error('Error updating score:', error);
+        alert('Error updating score. Please try again.');
+    }
+}
+
+function cancelEdit(index) {
+    updateAdminTable();
+}
+
+async function deleteScore(index) {
+    const submission = submissions[index];
+    if (!submission) return;
+    
+    if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
+        try {
+            // Delete from Google Sheets
+            await fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'deleteScore',
+                    index: index
+                })
+            });
+            
+            // Remove locally
+            submissions.splice(index, 1);
+            updateAdminTable();
+            updateLeaderboard();
+            alert('Score deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting score:', error);
+            alert('Error deleting score. Please try again.');
+        }
+    }
+}
+
+// Update leaderboard function
+function updateLeaderboard() {
+    const weekFilter = document.getElementById('weekFilter');
+    const leaderboardContent = document.getElementById('leaderboardContent');
+    
+    if (!leaderboardContent) return;
+    
+    if (submissions.length === 0) {
+        leaderboardContent.innerHTML = '<div class="no-data">No scores submitted yet. Be the first to submit your scores!</div>';
+        return;
+    }
+    
+    let filteredSubmissions = submissions;
+    
+    if (weekFilter && weekFilter.value !== 'all') {
+        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
+    }
+    
+    if (filteredSubmissions.length === 0) {
+        leaderboardContent.innerHTML = '<div class="no-data">No scores found for the selected week.</div>';
+        return;
+    }
+    
+    // Calculate leaderboard data
+    let leaderboardData = [];
+    
+    if (weekFilter && weekFilter.value === 'all') {
+        // Overall leaderboard - sum all scores for each player
+        const playerTotals = {};
+        filteredSubmissions.forEach(sub => {
+            if (playerTotals[sub.name]) {
+                playerTotals[sub.name].total += sub.total;
+                playerTotals[sub.name].weeks++;
+            } else {
+                playerTotals[sub.name] = {
+                    name: sub.name,
+                    total: sub.total,
+                    weeks: 1
+                };
+            }
+        });
+        
+        leaderboardData = Object.values(playerTotals);
+    } else {
+        // Weekly leaderboard
+        leaderboardData = filteredSubmissions.map(sub => ({
+            name: sub.name,
+            total: sub.total,
+            phone: sub.phone,
+            scores: sub.scores
+        }));
+    }
+    
+    // Sort by lowest score (best score in golf)
+    leaderboardData.sort((a, b) => a.total - b.total);
+    
+    // Create leaderboard table
+    let tableHTML = `
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Total Score</th>
+                    ${(weekFilter && weekFilter.value === 'all') ? '<th>Weeks Played</th>' : '<th>Individual Hole Scores</th>'}
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    leaderboardData.forEach((player, index) => {
+        const rank = index + 1;
+        let rowClass = '';
+        if (rank === 1) rowClass = 'rank-1';
+        else if (rank === 2) rowClass = 'rank-2';
+        else if (rank === 3) rowClass = 'rank-3';
+        
+        const extraColumn = (weekFilter && weekFilter.value === 'all') 
+            ? `<td>${player.weeks || 1}</td>`
+            : `<td>${player.scores ? player.scores.join(', ') : 'N/A'}</td>`;
+        
+        tableHTML += `
+            <tr class="${rowClass}">
+                <td class="rank-cell">${rank}</td>
+                <td>${player.name}</td>
+                <td class="total-score">${player.total}</td>
+                ${extraColumn}
+            </tr>
+        `;
+    });
+    
+    tableHTML += '</tbody></table>';
+    leaderboardContent.innerHTML = tableHTML;
+}
+
+// Function to load scores from Google Sheets
+async function loadScoresFromSheets() {
+    try {
+        const response = await fetch(scriptURL + '?action=getScores');
+        const data = await response.json();
+        submissions = data.scores || [];
+    } catch (error) {
+        console.error('Error loading scores:', error);
+        submissions = [];
+    }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Load scores when page loads
+    loadScoresFromSheets().then(() => {
+        updateLeaderboard();
+    });
+
+    // Handle week selection
+    const weekSelect = document.getElementById('weekSelect');
+    if (weekSelect) {
+        weekSelect.addEventListener('change', function() {
+            const selectedWeek = this.value;
+            const courseInfo = document.getElementById('courseInfo');
+            const courseTitle = document.getElementById('courseTitle');
+            const holesContainer = document.getElementById('holesContainer');
+
+            if (selectedWeek && courseData[selectedWeek] && courseInfo && courseTitle && holesContainer) {
+                const course = courseData[selectedWeek];
+                courseTitle.textContent = course.title;
+                
+                // Clear previous holes
+                holesContainer.innerHTML = '';
+                
+                // Add holes
+                course.holes.forEach((hole, index) => {
+                    const holeDiv = document.createElement('div');
+                    holeDiv.className = 'hole-input';
+                    holeDiv.innerHTML = `
+                        <label for="hole${index}">${hole.type} - ${hole.hole} (Par ${hole.par}):</label>
+                        <input type="number" id="hole${index}" name="hole${index}" 
+                               placeholder="Enter score" required min="1" max="15">
+                    `;
+                    holesContainer.appendChild(holeDiv);
+                });
+                
+                courseInfo.style.display = 'block';
+            } else if (courseInfo) {
+                courseInfo.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle form submission
+    const scoreForm = document.getElementById('scoreForm');
+    if (scoreForm) {
+        scoreForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('.submit-btn');
+            if (!submitBtn) return;
+            
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Submitting...';
+            submitBtn.disabled = true;
+            
+            const formData = new FormData(this);
+            const selectedWeek = formData.get('weekSelect');
+            const course = courseData[selectedWeek];
+            
+            if (!course) {
+                alert('Please select a valid week');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Collect scores
+            const scores = [];
+            let total = 0;
+            let hasError = false;
+            
+            for (let i = 0; i < course.holes.length; i++) {
+                const scoreValue = formData.get(`hole${i}`);
+                const score = parseInt(scoreValue);
+                if (isNaN(score) || score < 1 || score > 15) {
+                    alert(`Please enter a valid score (1-15) for ${course.holes[i].hole}`);
+                    hasError = true;
+                    break;
+                }
+                scores.push(score);
+                total += score;
+            }
+            
+            if (hasError) {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Create submission object
+            const submission = {
+                timestamp: new Date().toISOString(),
+                name: formData.get('playerName'),
+                handicap: formData.get('playerHandicap'),
+                phone: formData.get('phoneNumber'),
+                week: selectedWeek,
+                weekTitle: course.title,
+                scores: scores,
+                total: total
+            };
+            
+            try {
+                // Send to Google Sheets
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addScore',
+                        data: submission
+                    })
+                });
+                
+                // Add to local submissions
+                submissions.push(submission);
+                
+                // Show success message
+                const successMessage = document.getElementById('successMessage');
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                }
+                
+                // Reset form
+                this.reset();
+                const courseInfo = document.getElementById('courseInfo');
+                if (courseInfo) courseInfo.style.display = 'none';
+                
+                // Refresh leaderboard
+                updateLeaderboard();
+                
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                alert('Error submitting score. Please try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Handle Enter key in admin password field
+    const adminPassword = document.getElementById('adminPassword');
+    if (adminPassword) {
+        adminPassword.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                adminLogin();
+            }
+        });
+    }
+
+    // Handle leaderboard week filter
+    const weekFilter = document.getElementById('weekFilter');
+    if (weekFilter) {
+        weekFilter.addEventListener('change', updateLeaderboard);
+    }
+
+    // Handle admin week filter
+    const adminWeekFilter = document.getElementById('adminWeekFilter');
+    if (adminWeekFilter) {
+        adminWeekFilter.addEventListener('change', updateAdminTable);
+    }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('adminModal');
+    if (event.target === modal) {
+        closeAdminModal();
+    }
+}
+   </script>
+</body>
+</html>
