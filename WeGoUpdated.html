@@ -61,10 +61,6 @@
             --logo-admin: '🔧';                 /* Admin logo */
             --logo-warning: '⚠️';               /* Warning logo */
             
-            /* Organization Info */
-            --org-name: 'Golf Simulator Tournament';
-            --org-subtitle: 'Wego Golf X The Retreat Club';
-            --org-tagline: 'Submit Your Weekly Scores & View Leaderboard';
         }
         /* ==============================================
            APPLY THEME VARIABLES TO STYLES
@@ -585,23 +581,6 @@
             .header h2 {
                 font-size: 1.2em;
             }
-        }
-
-        /* Dynamic content insertion using CSS variables */
-        .header h1 {
-            position: relative;
-        }
-
-        .header h1:after {
-            content: '';
-        }
-
-        .header h2:after {
-            content: var(--org-subtitle);
-        }
-
-        .header p:after {
-            content: var(--org-tagline);
         }
     </style>
 </head>
