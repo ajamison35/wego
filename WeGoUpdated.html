@@ -896,9 +896,9 @@ function updateMatchResults() {
         tableHTML += `
             <tr>
                 <td>${new Date(match.timestamp).toLocaleDateString()}</td>
-                <td>${match.player1.name} (${match.player1.handicap})</td>
+                <td>${match.player1.name}</td>
                 <td>${match.player1.total} (${match.player1.scores.join(', ')})</td>
-                <td>${match.player2.name} (${match.player2.handicap})</td>
+                <td>${match.player2.name}</td>
                 <td>${match.player2.total} (${match.player2.scores.join(', ')})</td>
                 <td>${resultText}</td>
                 <td>${margin === 0 ? 'Tie' : margin + ' stroke' + (margin > 1 ? 's' : '')}</td>
@@ -967,7 +967,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Collect player 1 data
             const player1 = {
                 name: formData.get('player1Name'),
-                handicap: parseInt(formData.get('player1Handicap')),
                 scores: [
                     parseInt(formData.get('player1Par3')),
                     parseInt(formData.get('player1Par4')),
@@ -978,7 +977,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Collect player 2 data
             const player2 = {
                 name: formData.get('player2Name'),
-                handicap: parseInt(formData.get('player2Handicap')),
                 scores: [
                     parseInt(formData.get('player2Par3')),
                     parseInt(formData.get('player2Par4')),
@@ -993,12 +991,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check for valid names
             if (!player1.name.trim() || !player2.name.trim()) {
                 alert('Please enter names for both players');
-                hasError = true;
-            }
-            
-            // Check for valid handicaps
-            if (isNaN(player1.handicap) || isNaN(player2.handicap)) {
-                alert('Please enter valid handicaps for both players');
                 hasError = true;
             }
             
