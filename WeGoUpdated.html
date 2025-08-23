@@ -920,25 +920,7 @@ async function loadMatchResultsFromSheets() {
         }
     } catch (error) {
         console.error('Error loading match results:', error);
-        // For demo purposes, add some sample data
-        matchResults = [
-            {
-                timestamp: new Date().toISOString(),
-                player1: {
-                    name: "John Doe",
-                    handicap: 12,
-                    scores: [4, 5, 6],
-                    total: 15
-                },
-                player2: {
-                    name: "Jane Smith", 
-                    handicap: 8,
-                    scores: [3, 4, 5],
-                    total: 12
-                },
-                result: "Jane Smith wins by 3"
-            }
-        ];
+        matchResults = [];
     }
 }
 
