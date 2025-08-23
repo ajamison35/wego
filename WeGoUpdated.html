@@ -843,6 +843,19 @@ function deleteMatch(index) {
     if (!match) return;
     
     if (confirm(`Are you sure you want to delete the match between ${match.player1.name} and ${match.player2.name}?`)) {
+        try {
+            // Delete from Google Sheets
+            await fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'deleteScore',
+                    index: index
+                })
+            });
         matchResults.splice(index, 1);
         updateAdminTable();
         updateMatchResults();
