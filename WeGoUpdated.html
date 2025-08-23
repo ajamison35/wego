@@ -882,14 +882,262 @@ async function deleteMatch(index) {
             updateAdminTable();
             updateMatchResults();
             alert('Match deleted successfully!');
-        }
-        // Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('adminModal');
-    if (event.target === modal) {
-        closeAdminModal();
-    }
+        } // Function to delete match result
+async function deleteMatch(index) {
+   const match = matchResults[index];
+   if (!match) return;
+   
+   if (confirm(`Are you sure you want to delete the match between ${match.player1.name} and ${match.player2.name}?`)) {
+       try {
+           // Delete from Google Sheets
+           await fetch(scriptURL, {
+               method: 'POST',
+               mode: 'no-cors',
+               headers: {
+                   'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({
+                   action: 'deleteMatch',
+                   index: index
+               })
+           });
+           
+           // Remove locally
+           matchResults.splice(index, 1);
+           updateAdminTable();
+           updateMatchResults();
+           alert('Match deleted successfully!');
+       } catch (error) {
+           console.error('Error deleting match:', error);
+           alert('Error deleting match. Please try again.');
+       }
+   }
 }
-   </script>
+
+// Update match results display
+function updateMatchResults() {
+   const matchResultsContent = document.getElementById('matchResultsContent');
+   
+   if (!matchResultsContent) return;
+   
+   if (matchResults.length === 0) {
+       matchResultsContent.innerHTML = '<div class="no-data">No matches recorded yet. Be the first to submit match results!</div>';
+       return;
+   }
+   
+   // Sort matches by timestamp (newest first)
+   const sortedMatches = [...matchResults].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+   
+   // Create match results table
+   let tableHTML = `
+       <table class="match-table">
+           <thead>
+               <tr>
+                   <th>Date</th>
+                   <th>Player 1</th>
+                   <th>Player 1 Total</th>
+                   <th>Player 2</th>
+                   <th>Player 2 Total</th>
+                   <th>Result</th>
+                   <th>Margin</th>
+               </tr>
+           </thead>
+           <tbody>
+   `;
+   
+   sortedMatches.forEach(match => {
+       const margin = Math.abs(match.player1.total - match.player2.total);
+       let resultText = '';
+       
+       if (match.player1.total < match.player2.total) {
+           resultText = `${match.player1.name} wins`;
+       } else if (match.player2.total < match.player1.total) {
+           resultText = `${match.player2.name} wins`;
+       } else {
+           resultText = 'Tie';
+       }
+       
+       tableHTML += `
+           <tr>
+               <td>${new Date(match.timestamp).toLocaleDateString()}</td>
+               <td>${match.player1.name} (${match.player1.handicap})</td>
+               <td>${match.player1.total} (${match.player1.scores.join(', ')})</td>
+               <td>${match.player2.name} (${match.player2.handicap})</td>
+               <td>${match.player2.total} (${match.player2.scores.join(', ')})</td>
+               <td>${resultText}</td>
+               <td>${margin === 0 ? 'Tie' : margin + ' stroke' + (margin > 1 ? 's' : '')}</td>
+           </tr>
+       `;
+   });
+   
+   tableHTML += '</tbody></table>';
+   matchResultsContent.innerHTML = tableHTML;
+}
+
+// Function to load match results from Google Sheets
+async function loadMatchResultsFromSheets() {
+   try {
+       const response = await fetch(scriptURL + '?action=getMatches');
+       const data = await response.json();
+       matchResults = data.matches || [];
+   } catch (error) {
+       console.error('Error loading match results:', error);
+       matchResults = [];
+   }
+}
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+   // Load match results when page loads
+   loadMatchResultsFromSheets().then(() => {
+       updateMatchResults();
+   });
+
+   // Handle form submission for match results
+   const matchForm = document.getElementById('matchForm');
+   if (matchForm) {
+       matchForm.addEventListener('submit', async function(e) {
+           e.preventDefault();
+           
+           const submitBtn = this.querySelector('.submit-btn');
+           if (!submitBtn) return;
+           
+           const originalText = submitBtn.textContent;
+           submitBtn.textContent = 'Submitting...';
+           submitBtn.disabled = true;
+           
+           const formData = new FormData(this);
+           
+           // Collect player 1 data
+           const player1 = {
+               name: formData.get('player1Name'),
+               handicap: parseInt(formData.get('player1Handicap')),
+               scores: [
+                   parseInt(formData.get('player1Par3')),
+                   parseInt(formData.get('player1Par4')),
+                   parseInt(formData.get('player1Par5'))
+               ]
+           };
+           
+           // Collect player 2 data
+           const player2 = {
+               name: formData.get('player2Name'),
+               handicap: parseInt(formData.get('player2Handicap')),
+               scores: [
+                   parseInt(formData.get('player2Par3')),
+                   parseInt(formData.get('player2Par4')),
+                   parseInt(formData.get('player2Par5'))
+               ]
+           };
+           
+           // Validate all data
+           let hasError = false;
+           const allScores = [...player1.scores, ...player2.scores];
+           
+           // Check for valid names
+           if (!player1.name.trim() || !player2.name.trim()) {
+               alert('Please enter names for both players');
+               hasError = true;
+           }
+           
+           // Check for valid handicaps
+           if (isNaN(player1.handicap) || isNaN(player2.handicap)) {
+               alert('Please enter valid handicaps for both players');
+               hasError = true;
+           }
+           
+           // Check for valid scores
+           for (let i = 0; i < allScores.length; i++) {
+               if (isNaN(allScores[i]) || allScores[i] < 1 || allScores[i] > 15) {
+                   alert('Please enter valid scores (1-15) for all holes');
+                   hasError = true;
+                   break;
+               }
+           }
+           
+           if (hasError) {
+               submitBtn.textContent = originalText;
+               submitBtn.disabled = false;
+               return;
+           }
+           
+           // Calculate totals
+           player1.total = player1.scores.reduce((sum, score) => sum + score, 0);
+           player2.total = player2.scores.reduce((sum, score) => sum + score, 0);
+           
+           // Create match result object
+           const matchResult = {
+               timestamp: new Date().toISOString(),
+               player1: player1,
+               player2: player2,
+               result: player1.total < player2.total ? 
+                   `${player1.name} wins by ${player2.total - player1.total}` :
+                   player2.total < player1.total ?
+                   `${player2.name} wins by ${player1.total - player2.total}` :
+                   'Tie'
+           };
+           
+           try {
+               // Send to Google Sheets
+               await fetch(scriptURL, {
+                   method: 'POST',
+                   mode: 'no-cors',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify({
+                       action: 'addMatch',
+                       data: matchResult
+                   })
+               });
+               
+               // Add to local results
+               matchResults.push(matchResult);
+               
+               // Show success message
+               const successMessage = document.getElementById('successMessage');
+               if (successMessage) {
+                   successMessage.style.display = 'block';
+                   // Hide success message after 5 seconds
+                   setTimeout(() => {
+                       successMessage.style.display = 'none';
+                   }, 5000);
+               }
+               
+               // Reset form
+               this.reset();
+               
+               // Refresh match results display
+               updateMatchResults();
+               
+           } catch (error) {
+               console.error('Error submitting match result:', error);
+               alert('Error submitting match result. Please try again.');
+           } finally {
+               submitBtn.textContent = originalText;
+               submitBtn.disabled = false;
+           }
+       });
+   }
+
+   // Handle Enter key in admin password field
+   const adminPasswordField = document.getElementById('adminPassword');
+   if (adminPasswordField) {
+       adminPasswordField.addEventListener('keypress', function(e) {
+           if (e.key === 'Enter') {
+               adminLogin();
+           }
+       });
+   }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+   const modal = document.getElementById('adminModal');
+   if (event.target === modal) {
+       closeAdminModal();
+   }
+}
+</script>
 </body>
 </html>
