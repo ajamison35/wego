@@ -1020,32 +1020,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     action: 'addMatch',
                     data: matchResult
-            })
-        });
+                    })
+                });
 
-         // Reload results from Google Sheets so local copy stays synced
-            await loadMatchResultsFromSheets();
-            updateMatchResults();
+             // Reload results from Google Sheets so local copy stays synced
+                await loadMatchResultsFromSheets();
+                updateMatchResults();
 
-         // Show success message
-            const successMessage = document.getElementById('successMessage');
-            if (successMessage) {
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 5000);
-        }
+             // Show success message
+                const successMessage = document.getElementById('successMessage');
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 5000);
+                }
 
-        // Reset form
+            // Reset form
             this.reset();
 
-    } catch (error) {
-        console.error('Error submitting match result:', error);
-        alert('Error submitting match result. Please try again.');
-    } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }
+        } catch (error) {
+            console.error('Error submitting match result:', error);
+            alert('Error submitting match result. Please try again.');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
 
         });
     }
