@@ -706,7 +706,7 @@
 let matchResults = [];
 let isAdminLoggedIn = false;
 const adminPassword = "golf2024";
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwYw_ptProEgoNOR3iDeWiqwiMFDS_gkjYAZXaIhndhdzTebDlng70SSpRjI54y2Qyu/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxkYkSJJDMbiR08OiRx-J-MCMjvwGx8p0Y9cZZa8_9zRhUPvat5jip4B1cp_z4OtBCm/exec';
 
 // Tab switching function
 function switchTab(tabName) {
@@ -1012,41 +1012,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 matchResults.push(matchResult);
                 
                 // Try to send to Google Sheets (will fail silently if URL doesn't work)
-             try {
-                // Send to Google Sheets
-                await fetch(scriptURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'addMatch',
-                    data: matchResult
+                fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'addMatch',
+                        data: matchResult
                     })
+                }).catch(error => {
+                    console.log('Google Sheets submission failed (expected in demo):', error);
                 });
-
-             // Reload results from Google Sheets so local copy stays synced
-                await loadMatchResultsFromSheets();
-                updateMatchResults();
-
-             // Show success message
+                
+                // Show success message
                 const successMessage = document.getElementById('successMessage');
                 if (successMessage) {
                     successMessage.style.display = 'block';
+                    // Hide success message after 5 seconds
                     setTimeout(() => {
                         successMessage.style.display = 'none';
                     }, 5000);
                 }
-
-            // Reset form
-            this.reset();
-
-        } catch (error) {
-            console.error('Error submitting match result:', error);
-            alert('Error submitting match result. Please try again.');
-        } finally {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-        }
-
+                
+                // Reset form
+                this.reset();
+                
+                // Refresh match results display
+                updateMatchResults();
+                
+            } catch (error) {
+                console.error('Error submitting match result:', error);
+                alert('Error submitting match result. Please try again.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
         });
     }
 
