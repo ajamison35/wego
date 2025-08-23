@@ -1008,23 +1008,27 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             try {
-                // Add to local results immediately
-                matchResults.push(matchResult);
-                
-                // Try to send to Google Sheets (will fail silently if URL doesn't work)
-                fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'addMatch',
-                        data: matchResult
-                    })
-                }).catch(error => {
-                    console.log('Google Sheets submission failed (expected in demo):', error);
-                });
+             // Send to Google Sheets
+            fetch(scriptURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'addMatch',
+                    data: matchResult
+                })
+            })
+            .then(() => {
+            // Reload results from Google Sheets so local state stays in sync
+            return loadMatchResultsFromSheets();
+            })
+            .then(() => {
+                updateMatchResults(); // update table with fresh data from Sheets
+            })
+            .catch(error => {
+                console.error('Google Sheets submission failed:', error);
+            });
                 
                 // Show success message
                 const successMessage = document.getElementById('successMessage');
