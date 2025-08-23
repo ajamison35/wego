@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golf Simulator Tournament - Score Submission</title>
+    <title>Golf Simulator Matches - Score Submission</title>
     <style>
         /* ==============================================
            THEME VARIABLES - UPDATE THESE TO REBRAND
@@ -44,10 +44,13 @@
             --error-text: #721c24;              /* Error message text */
             --error-border: #f5c6cb;            /* Error message border */
             
-            /* Leaderboard Colors */
-            --rank-1-bg: linear-gradient(135deg, #FFB700, #FFC933); /* 1st place - ECU Gold */
-            --rank-2-bg: linear-gradient(135deg, #c0c0c0, #e2e2e2); /* 2nd place - Silver */
-            --rank-3-bg: linear-gradient(135deg, #cd7f32, #daa520); /* 3rd place - Bronze */
+            /* Match Colors */
+            --win-bg: #d4edda;                  /* Win background */
+            --win-text: #155724;                /* Win text */
+            --loss-bg: #f8d7da;                 /* Loss background */
+            --loss-text: #721c24;               /* Loss text */
+            --tie-bg: #fff3cd;                  /* Tie background */
+            --tie-text: #856404;                /* Tie text */
             
             /* Admin Colors */
             --admin-danger: #dc3545;            /* Danger/delete actions */
@@ -159,8 +162,28 @@
             font-size: 1.3em;
         }
 
+        .match-info {
+            background: var(--secondary-background);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .match-info h3 {
+            color: var(--title-color);
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
         .form-group {
             margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
 
         label {
@@ -179,14 +202,10 @@
             transition: border-color 0.3s ease;
         }
 
-        input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, select:focus {
+        input[type="text"]:focus, input[type="tel"]:focus, input[type="password"]:focus, select:focus, input[type="number"]:focus {
             outline: none;
             border-color: var(--focus-color);
             box-shadow: 0 0 0 3px var(--focus-shadow);
-        }
-
-        .week-selector {
-            margin-bottom: 30px;
         }
 
         .course-info {
@@ -284,37 +303,22 @@
             display: block;
         }
 
-        .leaderboard-section {
+        .match-results-section {
             padding: 40px;
             background: var(--card-background);
         }
 
-        .leaderboard-section h2:before {
+        .match-results-section h2:before {
             content: var(--logo-secondary);
             margin-right: 10px;
         }
 
-        .leaderboard-section h2:after {
+        .match-results-section h2:after {
             content: var(--logo-secondary);
             margin-left: 10px;
         }
 
-        .week-filter {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .week-filter select {
-            padding: 12px 20px;
-            font-size: 16px;
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            background: var(--card-background);
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-
-        .leaderboard-table {
+        .match-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
@@ -323,7 +327,7 @@
             overflow: hidden;
         }
 
-        .leaderboard-table th {
+        .match-table th {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             color: var(--text-on-primary);
             padding: 15px 12px;
@@ -331,43 +335,39 @@
             font-weight: bold;
         }
 
-        .leaderboard-table td {
+        .match-table td {
             padding: 12px;
             border-bottom: 1px solid #eee;
         }
 
-        .leaderboard-table tr:nth-child(even) {
+        .match-table tr:nth-child(even) {
             background: var(--secondary-background);
         }
 
-        .leaderboard-table tr:hover {
+        .match-table tr:hover {
             background: var(--info-background);
         }
 
-        .rank-1 {
-            background: var(--rank-1-bg) !important;
+        .match-result {
             font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-align: center;
         }
 
-        .rank-2 {
-            background: var(--rank-2-bg) !important;
-            font-weight: bold;
+        .result-win {
+            background: var(--win-bg);
+            color: var(--win-text);
         }
 
-        .rank-3 {
-            background: var(--rank-3-bg) !important;
-            font-weight: bold;
+        .result-loss {
+            background: var(--loss-bg);
+            color: var(--loss-text);
         }
 
-        .rank-cell {
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .total-score {
-            font-weight: bold;
-            font-size: 16px;
-            color: var(--primary-color);
+        .result-tie {
+            background: var(--tie-bg);
+            color: var(--tie-text);
         }
 
         .no-data {
@@ -415,7 +415,7 @@
             padding: 0;
             border-radius: 15px;
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -560,6 +560,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
             .modal-content {
                 width: 95%;
                 margin: 2% auto;
@@ -588,88 +592,97 @@
     <div class="container">
         <div class="header">
             <button class="admin-btn" onclick="openAdminModal()">Admin</button>
-            <h1>ECU Golf Simulator Competition</h1>
+            <h1>ECU Golf Simulator Matches</h1>
             <h2>Powered by WeGo Golf</h2>
-            <p>Submit Your Scores & View Leaderboard</p>
+            <p>Submit Match Results & View History</p>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('submit')">Submit Scores</button>
-            <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+            <button class="tab active" onclick="switchTab('submit')">Submit Match</button>
+            <button class="tab" onclick="switchTab('results')">Match Results</button>
         </div>
 
-        <!-- Submit Scores Tab -->
+        <!-- Submit Match Tab -->
         <div id="submitTab" class="tab-content active">
             <div class="form-container">
                 <div class="success-message" id="successMessage">
-                    Score submitted successfully! Thank you for participating.
+                    Match results submitted successfully! Thank you for participating.
                 </div>
 
-                <form id="scoreForm">
-                    <div class="participant-info">
-                        <h3>Participant Information</h3>
-                        <div class="form-group">
-                            <label for="playerName">Player Name:</label>
-                            <input type="text" id="playerName" name="playerName" required>
+                <form id="matchForm">
+                    <div class="match-info">
+                        <h3>Match Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="player1Name">Player 1 Name:</label>
+                                <input type="text" id="player1Name" name="player1Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="player2Name">Player 2 Name:</label>
+                                <input type="text" id="player2Name" name="player2Name" required>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="playerHandicap">Player Handicap:</label>
-                            <input type="number" id="playerHandicap" name="playerHandicap" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phoneNumber">Phone Number:</label>
-                            <input type="tel" id="phoneNumber" name="phoneNumber" required>
-                        </div>
-                    </div>
-
-                    <div class="week-selector">
-                        <div class="form-group">
-                            <label for="weekSelect">Select Tournament Week:</label>
-                            <select id="weekSelect" name="weekSelect" required>
-                                <option value="">Choose a week...</option>
-                                <option value="week1">Week 1 - Quail Hollow Club (Championship Vibes)</option>
-                                <option value="week2">Week 2 - Torrey Pines (California Dreaming)</option>
-                                <option value="week3">Week 3 - Royal St. George's (British Open Week)</option>
-                                <option value="week4">Week 4 - Valhalla Golf Club (Major Season)</option>
-                                <option value="week5">Week 5 - Augusta National</option>
-                                <option value="week6">Week 6 - St. Andrews Old Course (Finale & Trophy Night)</option>
-                            </select>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="player1Handicap">Player 1 Handicap:</label>
+                                <input type="number" id="player1Handicap" name="player1Handicap" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="player2Handicap">Player 2 Handicap:</label>
+                                <input type="number" id="player2Handicap" name="player2Handicap" required>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="courseInfo" class="course-info" style="display: none;">
-                        <h4 id="courseTitle"></h4>
-                        <div class="holes-container" id="holesContainer">
-                            <!-- Holes will be populated by JavaScript -->
+                    <div class="course-info">
+                        <h4>Hole Scores</h4>
+                        <div class="holes-container">
+                            <div class="hole-input">
+                                <label for="player1Par3">Player 1 - Par 3 Score:</label>
+                                <input type="number" id="player1Par3" name="player1Par3" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
+                            <div class="hole-input">
+                                <label for="player2Par3">Player 2 - Par 3 Score:</label>
+                                <input type="number" id="player2Par3" name="player2Par3" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
+                            <div class="hole-input">
+                                <label for="player1Par4">Player 1 - Par 4 Score:</label>
+                                <input type="number" id="player1Par4" name="player1Par4" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
+                            <div class="hole-input">
+                                <label for="player2Par4">Player 2 - Par 4 Score:</label>
+                                <input type="number" id="player2Par4" name="player2Par4" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
+                            <div class="hole-input">
+                                <label for="player1Par5">Player 1 - Par 5 Score:</label>
+                                <input type="number" id="player1Par5" name="player1Par5" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
+                            <div class="hole-input">
+                                <label for="player2Par5">Player 2 - Par 5 Score:</label>
+                                <input type="number" id="player2Par5" name="player2Par5" 
+                                       placeholder="Enter score" required min="1" max="15">
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="submit-btn">Submit Scores</button>
+                    <button type="submit" class="submit-btn">Submit Match Results</button>
                 </form>
             </div>
         </div>
 
-        <!-- Leaderboard Tab -->
-        <div id="leaderboardTab" class="tab-content">
-            <div class="leaderboard-section">
-                <h2 style="text-align: center; color: var(--title-color); margin-bottom: 30px;">Tournament Leaderboard</h2>
+        <!-- Match Results Tab -->
+        <div id="resultsTab" class="tab-content">
+            <div class="match-results-section">
+                <h2 style="text-align: center; color: var(--title-color); margin-bottom: 30px;">Match Results History</h2>
                 
-                <div class="week-filter">
-                    <label for="weekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
-                    <select id="weekFilter" onchange="updateLeaderboard()">
-                        <option value="all">All Weeks (Overall)</option>
-                        <option value="week1">Week 1 - Quail Hollow Club</option>
-                        <option value="week2">Week 2 - Torrey Pines</option>
-                        <option value="week3">Week 3 - Royal St. George's</option>
-                        <option value="week4">Week 4 - Valhalla Golf Club</option>
-                        <option value="week5">Week 5 - Augusta National</option>
-                        <option value="week6">Week 6 - St. Andrews Old Course</option>
-                    </select>
-                </div>
-
-                <div id="leaderboardContent">
+                <div id="matchResultsContent">
                     <div class="no-data">
-                        No scores submitted yet. Be the first to submit your scores!
+                        No matches recorded yet. Be the first to submit match results!
                     </div>
                 </div>
             </div>
@@ -695,21 +708,8 @@
 
                 <div id="adminPanel" style="display: none;">
                     <div class="admin-controls">
-                        <h3>Score Management</h3>
-                        <p>Use the buttons below to edit or delete individual scores. Changes are immediate and cannot be undone.</p>
-                    </div>
-
-                    <div class="week-filter" style="margin-bottom: 20px;">
-                        <label for="adminWeekFilter" style="margin-right: 15px; font-weight: bold;">Filter by Week:</label>
-                        <select id="adminWeekFilter" onchange="updateAdminTable()">
-                            <option value="all">All Weeks</option>
-                            <option value="week1">Week 1 - Quail Hollow Club</option>
-                            <option value="week2">Week 2 - Torrey Pines</option>
-                            <option value="week3">Week 3 - Royal St. George's</option>
-                            <option value="week4">Week 4 - Valhalla Golf Club</option>
-                            <option value="week5">Week 5 - Augusta National</option>
-                            <option value="week6">Week 6 - St. Andrews Old Course</option>
-                        </select>
+                        <h3>Match Management</h3>
+                        <p>Use the buttons below to edit or delete individual match results. Changes are immediate and cannot be undone.</p>
                     </div>
 
                     <div id="adminTableContainer">
@@ -721,63 +721,12 @@
     </div>
 
 <script>
-// Store all submissions in memory
-let submissions = [];
+// Store all match results in memory
+let matchResults = [];
 let isAdminLoggedIn = false;
 const adminPassword = "golf2024"; // Change this to your desired password
 const scriptURL = 'https://script.google.com/macros/s/AKfycbyK-jgsoOUVikg-5OYtAkzKEErSKGCZ6IlTuNHm3NyWyzLMHpIKcadIIwsfHtZOORjE8A/exec';
 
-// Course data
-const courseData = {
-    week1: {
-        title: "Week 1 – Quail Hollow Club (Championship Vibes)",
-        holes: [
-            { type: "Par 3", hole: "Hole 17", par: 3 },
-            { type: "Par 4", hole: "Hole 2", par: 4 },
-            { type: "Par 5", hole: "Hole 7", par: 5 }
-        ]
-    },
-    week2: {
-        title: "Week 2 – Torrey Pines (California Dreaming)",
-        holes: [
-            { type: "Par 3", hole: "Hole 3", par: 3 },
-            { type: "Par 4", hole: "Hole 4", par: 4 },
-            { type: "Par 5", hole: "Hole 18", par: 5 }
-        ]
-    },
-    week3: {
-        title: "Week 3 – Royal St. George's (British Open Week)",
-        holes: [
-            { type: "Par 3", hole: "Hole 6", par: 3 },
-            { type: "Par 4", hole: "Hole 1", par: 4 },
-            { type: "Par 5", hole: "Hole 7", par: 5 }
-        ]
-    },
-    week4: {
-        title: "Week 4 – Valhalla Golf Club (Major Season)",
-        holes: [
-            { type: "Par 3", hole: "Hole 8", par: 3 },
-            { type: "Par 4", hole: "Hole 13", par: 4 },
-            { type: "Par 5", hole: "Hole 7", par: 5 }
-        ]
-    },
-    week5: {
-        title: "Week 5 – Augusta National",
-        holes: [
-            { type: "Par 3", hole: "Hole 12", par: 3 },
-            { type: "Par 4", hole: "Hole 11", par: 4 },
-            { type: "Par 5", hole: "Hole 13", par: 5 }
-        ]
-    },
-    week6: {
-        title: "Week 6 – St. Andrews Old Course (Finale & Trophy Night)",
-        holes: [
-            { type: "Par 3", hole: "Hole 8", par: 3 },
-            { type: "Par 4", hole: "Hole 17", par: 4 },
-            { type: "Par 5", hole: "Hole 15", par: 5 }
-        ]
-    }
-};
 // Tab switching function
 function switchTab(tabName) {
     // Hide all tab contents
@@ -794,12 +743,12 @@ function switchTab(tabName) {
         const submitButton = document.querySelector('.tab[onclick="switchTab(\'submit\')"]');
         if (submitTab) submitTab.classList.add('active');
         if (submitButton) submitButton.classList.add('active');
-    } else if (tabName === 'leaderboard') {
-        const leaderboardTab = document.getElementById('leaderboardTab');
-        const leaderboardButton = document.querySelector('.tab[onclick="switchTab(\'leaderboard\')"]');
-        if (leaderboardTab) leaderboardTab.classList.add('active');
-        if (leaderboardButton) leaderboardButton.classList.add('active');
-        updateLeaderboard(); // Update leaderboard when switching to it
+    } else if (tabName === 'results') {
+        const resultsTab = document.getElementById('resultsTab');
+        const resultsButton = document.querySelector('.tab[onclick="switchTab(\'results\')"]');
+        if (resultsTab) resultsTab.classList.add('active');
+        if (resultsButton) resultsButton.classList.add('active');
+        updateMatchResults(); // Update results when switching to it
     }
 }
 
@@ -854,23 +803,12 @@ function adminLogin() {
 }
 
 function updateAdminTable() {
-    const weekFilter = document.getElementById('adminWeekFilter');
     const container = document.getElementById('adminTableContainer');
     
     if (!container) return;
     
-    if (submissions.length === 0) {
-        container.innerHTML = '<div class="no-data">No submissions to manage.</div>';
-        return;
-    }
-    
-    let filteredSubmissions = submissions;
-    if (weekFilter && weekFilter.value !== 'all') {
-        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
-    }
-    
-    if (filteredSubmissions.length === 0) {
-        container.innerHTML = '<div class="no-data">No submissions found for the selected week.</div>';
+    if (matchResults.length === 0) {
+        container.innerHTML = '<div class="no-data">No match results to manage.</div>';
         return;
     }
     
@@ -878,33 +816,34 @@ function updateAdminTable() {
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Timestamp</th>
-                    <th>Player</th>
-                    <th>Week</th>
-                    <th>Hole 1</th>
-                    <th>Hole 2</th>
-                    <th>Hole 3</th>
-                    <th>Total</th>
+                    <th>Date</th>
+                    <th>Player 1</th>
+                    <th>Player 2</th>
+                    <th>P1 Scores</th>
+                    <th>P2 Scores</th>
+                    <th>P1 Total</th>
+                    <th>P2 Total</th>
+                    <th>Result</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
     `;
     
-    filteredSubmissions.forEach((submission, index) => {
-        const originalIndex = submissions.indexOf(submission);
+    matchResults.forEach((match, index) => {
         tableHTML += `
-            <tr id="row-${originalIndex}">
-                <td>${new Date(submission.timestamp).toLocaleString()}</td>
-                <td>${submission.name}</td>
-                <td>${submission.weekTitle}</td>
-                <td><span class="score-display" id="score-${originalIndex}-0">${submission.scores[0]}</span></td>
-                <td><span class="score-display" id="score-${originalIndex}-1">${submission.scores[1]}</span></td>
-                <td><span class="score-display" id="score-${originalIndex}-2">${submission.scores[2]}</span></td>
-                <td><span class="total-display" id="total-${originalIndex}">${submission.total}</span></td>
+            <tr id="row-${index}">
+                <td>${new Date(match.timestamp).toLocaleDateString()}</td>
+                <td>${match.player1.name}</td>
+                <td>${match.player2.name}</td>
+                <td>${match.player1.scores.join(', ')}</td>
+                <td>${match.player2.scores.join(', ')}</td>
+                <td>${match.player1.total}</td>
+                <td>${match.player2.total}</td>
+                <td>${match.result}</td>
                 <td>
-                    <button class="admin-btn-small edit-btn" onclick="editScore(${originalIndex})">Edit</button>
-                    <button class="admin-btn-small delete-btn" onclick="deleteScore(${originalIndex})">Delete</button>
+                    <button class="admin-btn-small edit-btn" onclick="editMatch(${index})">Edit</button>
+                    <button class="admin-btn-small delete-btn" onclick="deleteMatch(${index})">Delete</button>
                 </td>
             </tr>
         `;
@@ -914,91 +853,18 @@ function updateAdminTable() {
     container.innerHTML = tableHTML;
 }
 
-function editScore(index) {
-    const submission = submissions[index];
-    const row = document.getElementById(`row-${index}`);
-    
-    if (!submission || !row) return;
-    
-    // Replace score displays with inputs
-    for (let i = 0; i < 3; i++) {
-        const scoreCell = document.getElementById(`score-${index}-${i}`);
-        if (scoreCell) {
-            scoreCell.innerHTML = `<input type="number" class="edit-input" id="edit-${index}-${i}" value="${submission.scores[i]}" min="1" max="15">`;
-        }
-    }
-    
-    // Replace action buttons
-    const actionCell = row.querySelector('td:last-child');
-    if (actionCell) {
-        actionCell.innerHTML = `
-            <button class="admin-btn-small save-btn" onclick="saveScore(${index})">Save</button>
-            <button class="admin-btn-small cancel-btn" onclick="cancelEdit(${index})">Cancel</button>
-        `;
-    }
+function editMatch(index) {
+    // For now, just show alert - full edit functionality would be more complex
+    alert('Edit functionality would allow modifying individual scores. This would require a more complex form.');
 }
 
-async function saveScore(index) {
-    const newScores = [];
-    let newTotal = 0;
+async function deleteMatch(index) {
+    const match = matchResults[index];
+    if (!match) return;
     
-    // Get new scores from inputs
-    for (let i = 0; i < 3; i++) {
-        const input = document.getElementById(`edit-${index}-${i}`);
-        if (!input) {
-            alert('Error: Could not find score input');
-            return;
-        }
-        const score = parseInt(input.value);
-        if (isNaN(score) || score < 1 || score > 15) {
-            alert(`Please enter a valid score (1-15) for hole ${i + 1}`);
-            return;
-        }
-        newScores.push(score);
-        newTotal += score;
-    }
-    
-    // Update submission locally
-    submissions[index].scores = newScores;
-    submissions[index].total = newTotal;
-    
-    try {
-        // Update in Google Sheets
-        await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'updateScore',
-                index: index,
-                data: submissions[index]
-            })
-        });
-        
-        // Refresh admin table and leaderboard
-        updateAdminTable();
-        updateLeaderboard();
-        
-        alert('Score updated successfully!');
-    } catch (error) {
-        console.error('Error updating score:', error);
-        alert('Error updating score. Please try again.');
-    }
-}
-
-function cancelEdit(index) {
-    updateAdminTable();
-}
-
-async function deleteScore(index) {
-    const submission = submissions[index];
-    if (!submission) return;
-    
-    if (confirm(`Are you sure you want to delete ${submission.name}'s score for ${submission.weekTitle}?`)) {
+    if (confirm(`Are you sure you want to delete the match between ${match.player1.name} and ${match.player2.name}?`)) {
         try {
-            // Delete from Google Sheets
+            // Delete from Google Sheets if needed
             await fetch(scriptURL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -1006,300 +872,18 @@ async function deleteScore(index) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    action: 'deleteScore',
+                    action: 'deleteMatch',
                     index: index
                 })
             });
             
             // Remove locally
-            submissions.splice(index, 1);
+            matchResults.splice(index, 1);
             updateAdminTable();
-            updateLeaderboard();
-            alert('Score deleted successfully!');
-        } catch (error) {
-            console.error('Error deleting score:', error);
-            alert('Error deleting score. Please try again.');
+            updateMatchResults();
+            alert('Match deleted successfully!');
         }
-    }
-}
-
-// Update leaderboard function
-function updateLeaderboard() {
-    const weekFilter = document.getElementById('weekFilter');
-    const leaderboardContent = document.getElementById('leaderboardContent');
-    
-    if (!leaderboardContent) return;
-    
-    if (submissions.length === 0) {
-        leaderboardContent.innerHTML = '<div class="no-data">No scores submitted yet. Be the first to submit your scores!</div>';
-        return;
-    }
-    
-    let filteredSubmissions = submissions;
-    
-    if (weekFilter && weekFilter.value !== 'all') {
-        filteredSubmissions = submissions.filter(sub => sub.week === weekFilter.value);
-    }
-    
-    if (filteredSubmissions.length === 0) {
-        leaderboardContent.innerHTML = '<div class="no-data">No scores found for the selected week.</div>';
-        return;
-    }
-    
-    // Calculate leaderboard data
-    let leaderboardData = [];
-    
-    if (weekFilter && weekFilter.value === 'all') {
-        // Overall leaderboard - sum all scores for each player
-        const playerTotals = {};
-        filteredSubmissions.forEach(sub => {
-            if (playerTotals[sub.name]) {
-                playerTotals[sub.name].total += sub.total;
-                playerTotals[sub.name].weeks++;
-            } else {
-                playerTotals[sub.name] = {
-                    name: sub.name,
-                    total: sub.total,
-                    weeks: 1
-                };
-            }
-        });
-        
-        leaderboardData = Object.values(playerTotals);
-    } else {
-        // Weekly leaderboard
-        leaderboardData = filteredSubmissions.map(sub => ({
-            name: sub.name,
-            total: sub.total,
-            phone: sub.phone,
-            scores: sub.scores
-        }));
-    }
-    
-    // Sort by lowest score (best score in golf)
-    leaderboardData.sort((a, b) => a.total - b.total);
-    
-    // Create leaderboard table
-    let tableHTML = `
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Player</th>
-                    <th>Total Score</th>
-                    ${(weekFilter && weekFilter.value === 'all') ? '<th>Weeks Played</th>' : '<th>Individual Hole Scores</th>'}
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    leaderboardData.forEach((player, index) => {
-        const rank = index + 1;
-        let rowClass = '';
-        if (rank === 1) rowClass = 'rank-1';
-        else if (rank === 2) rowClass = 'rank-2';
-        else if (rank === 3) rowClass = 'rank-3';
-        
-        const extraColumn = (weekFilter && weekFilter.value === 'all') 
-            ? `<td>${player.weeks || 1}</td>`
-            : `<td>${player.scores ? player.scores.join(', ') : 'N/A'}</td>`;
-        
-        tableHTML += `
-            <tr class="${rowClass}">
-                <td class="rank-cell">${rank}</td>
-                <td>${player.name}</td>
-                <td class="total-score">${player.total}</td>
-                ${extraColumn}
-            </tr>
-        `;
-    });
-    
-    tableHTML += '</tbody></table>';
-    leaderboardContent.innerHTML = tableHTML;
-}
-
-// Function to load scores from Google Sheets
-async function loadScoresFromSheets() {
-    try {
-        const response = await fetch(scriptURL + '?action=getScores');
-        const data = await response.json();
-        submissions = data.scores || [];
-    } catch (error) {
-        console.error('Error loading scores:', error);
-        submissions = [];
-    }
-}
-
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Load scores when page loads
-    loadScoresFromSheets().then(() => {
-        updateLeaderboard();
-    });
-
-    // Handle week selection
-    const weekSelect = document.getElementById('weekSelect');
-    if (weekSelect) {
-        weekSelect.addEventListener('change', function() {
-            const selectedWeek = this.value;
-            const courseInfo = document.getElementById('courseInfo');
-            const courseTitle = document.getElementById('courseTitle');
-            const holesContainer = document.getElementById('holesContainer');
-
-            if (selectedWeek && courseData[selectedWeek] && courseInfo && courseTitle && holesContainer) {
-                const course = courseData[selectedWeek];
-                courseTitle.textContent = course.title;
-                
-                // Clear previous holes
-                holesContainer.innerHTML = '';
-                
-                // Add holes
-                course.holes.forEach((hole, index) => {
-                    const holeDiv = document.createElement('div');
-                    holeDiv.className = 'hole-input';
-                    holeDiv.innerHTML = `
-                        <label for="hole${index}">${hole.type} - ${hole.hole} (Par ${hole.par}):</label>
-                        <input type="number" id="hole${index}" name="hole${index}" 
-                               placeholder="Enter score" required min="1" max="15">
-                    `;
-                    holesContainer.appendChild(holeDiv);
-                });
-                
-                courseInfo.style.display = 'block';
-            } else if (courseInfo) {
-                courseInfo.style.display = 'none';
-            }
-        });
-    }
-
-    // Handle form submission
-    const scoreForm = document.getElementById('scoreForm');
-    if (scoreForm) {
-        scoreForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = this.querySelector('.submit-btn');
-            if (!submitBtn) return;
-            
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Submitting...';
-            submitBtn.disabled = true;
-            
-            const formData = new FormData(this);
-            const selectedWeek = formData.get('weekSelect');
-            const course = courseData[selectedWeek];
-            
-            if (!course) {
-                alert('Please select a valid week');
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                return;
-            }
-            
-            // Collect scores
-            const scores = [];
-            let total = 0;
-            let hasError = false;
-            
-            for (let i = 0; i < course.holes.length; i++) {
-                const scoreValue = formData.get(`hole${i}`);
-                const score = parseInt(scoreValue);
-                if (isNaN(score) || score < 1 || score > 15) {
-                    alert(`Please enter a valid score (1-15) for ${course.holes[i].hole}`);
-                    hasError = true;
-                    break;
-                }
-                scores.push(score);
-                total += score;
-            }
-            
-            if (hasError) {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-                return;
-            }
-            
-            // Create submission object
-            const submission = {
-                timestamp: new Date().toISOString(),
-                name: formData.get('playerName'),
-                handicap: formData.get('playerHandicap'),
-                phone: formData.get('phoneNumber'),
-                week: selectedWeek,
-                weekTitle: course.title,
-                scores: scores,
-                total: total
-            };
-            
-            try {
-                // Send to Google Sheets
-                await fetch(scriptURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'addScore',
-                        data: submission
-                    })
-                });
-                
-                // Add to local submissions
-                submissions.push(submission);
-                
-                // Show success message
-                const successMessage = document.getElementById('successMessage');
-                if (successMessage) {
-                    successMessage.style.display = 'block';
-                    // Hide success message after 5 seconds
-                    setTimeout(() => {
-                        successMessage.style.display = 'none';
-                    }, 5000);
-                }
-                
-                // Reset form
-                this.reset();
-                const courseInfo = document.getElementById('courseInfo');
-                if (courseInfo) courseInfo.style.display = 'none';
-                
-                // Refresh leaderboard
-                updateLeaderboard();
-                
-            } catch (error) {
-                console.error('Error submitting score:', error);
-                alert('Error submitting score. Please try again.');
-            } finally {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        });
-    }
-
-    // Handle Enter key in admin password field
-    const adminPassword = document.getElementById('adminPassword');
-    if (adminPassword) {
-        adminPassword.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                adminLogin();
-            }
-        });
-    }
-
-    // Handle leaderboard week filter
-    const weekFilter = document.getElementById('weekFilter');
-    if (weekFilter) {
-        weekFilter.addEventListener('change', updateLeaderboard);
-    }
-
-    // Handle admin week filter
-    const adminWeekFilter = document.getElementById('adminWeekFilter');
-    if (adminWeekFilter) {
-        adminWeekFilter.addEventListener('change', updateAdminTable);
-    }
-});
-
-// Close modal when clicking outside
+        // Close modal when clicking outside
 window.onclick = function(event) {
     const modal = document.getElementById('adminModal');
     if (event.target === modal) {
